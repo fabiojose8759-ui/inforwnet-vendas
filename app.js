@@ -98,6 +98,8 @@ function setAuthMode(mode) {
   tabRegister.classList.toggle('active', !isLogin);
   loginForm.classList.toggle('active', isLogin);
   registerForm.classList.toggle('active', !isLogin);
+  const successEl = document.getElementById('registerSuccess');
+  if (successEl) successEl.classList.remove('show');
 }
 
 tabLogin.addEventListener('click', () => setAuthMode('login'));
@@ -139,12 +141,11 @@ btnRegister.addEventListener('click', async () => {
       role: 'user',
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    showToast('Conta criada! Fazendo login...', 'ti-check');
-    // Faz logout e pede que o usuário entre manualmente, evitando race condition
     await auth.signOut();
-    setAuthMode('login');
-    document.getElementById('loginEmail').value = email;
-    showToast('Conta criada! Faça login para continuar.', 'ti-check');
+    document.getElementById('registerNome').value = '';
+    document.getElementById('registerEmail').value = '';
+    document.getElementById('registerSenha').value = '';
+    document.getElementById('registerSuccess').classList.add('show');
   } catch (error) {
     showToast(getAuthErrorMessage(error), 'ti-alert-circle', true);
   } finally {
@@ -272,7 +273,7 @@ overlay.addEventListener('click', () => {
 
 // ── NAVEGAÇÃO ──
 function navigate(pageId) {
-  if (pageId === 'usuarios' && !isAdmin()) {
+  if ((pageId === 'usuarios' || pageId === 'financeiro') && !isAdmin()) {
     showToast('Acesso permitido somente para ADMIN.', 'ti-alert-circle', true);
     pageId = 'dashboard';
   }
@@ -748,7 +749,7 @@ function emptyRow(colspan, message) {
   return `<tr><td colspan="${colspan}" style="text-align:center;padding:24px;color:var(--txt-muted)">${message}</td></tr>`;
 }
 
-function showToast(msg, icon = 'ti-check', error = false) {
+function showToast(msg, icon = 'ti-check', error = false, duration = 3000) {
   const t = document.getElementById('toast');
   const ti = document.getElementById('toastIcon');
   const tm = document.getElementById('toastMsg');
@@ -756,10 +757,22 @@ function showToast(msg, icon = 'ti-check', error = false) {
   ti.style.color = error ? '#ef4444' : '#5DCAA5';
   tm.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
+  setTimeout(() => t.classList.remove('show'), duration);
 }
 
 window.showToast = showToast;
+
+window.toggleSenha = function(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const icon = btn.querySelector('i');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.className = 'ti ti-eye-off';
+  } else {
+    input.type = 'password';
+    icon.className = 'ti ti-eye';
+  }
+};
 
 // ── INIT ──
 document.body.classList.add('auth-active');
