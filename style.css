@@ -168,6 +168,60 @@ body.auth-active .sidebar-overlay {
   line-height: 1.4;
 }
 
+.register-success {
+  display: none;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: #d1fae5;
+  color: #065f46;
+  font-size: 13px;
+  line-height: 1.5;
+  border: 1px solid #6ee7b7;
+}
+
+.register-success i {
+  font-size: 22px;
+  color: #059669;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.register-success div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.register-success strong {
+  font-weight: 600;
+}
+
+.register-success span {
+  opacity: 0.85;
+}
+
+.register-success.show {
+  display: flex;
+}
+
+.eye-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--txt-muted);
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  transition: color .2s;
+  flex-shrink: 0;
+}
+
+.eye-btn:hover { color: var(--txt); }
+
 .admin-only {
   display: none;
 }
