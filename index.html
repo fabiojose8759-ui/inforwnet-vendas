@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inforwnet Vendas</title>
+  <meta name="theme-color" content="#1a56db">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Inforwnet">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -317,34 +324,9 @@
 
             <div class="form-group col3">
               <label>Plano Contratado: *</label>
-              <div class="input-wrap native-plan-wrap">
+              <div class="input-wrap">
                 <span class="inp-icon"><i class="ti ti-wifi"></i></span>
-                <select id="plano">
-                  <option value="">Selecione o plano</option>
-                  <optgroup label="Planos sem App">
-                    <option value="500 Mega – R$ 99,99/mês">500 Mega – R$ 99,99/mês</option>
-                    <option value="600 Mega – R$ 119,99/mês">600 Mega – R$ 119,99/mês</option>
-                    <option value="700 Mega – R$ 149,99/mês">700 Mega – R$ 149,99/mês</option>
-                    <option value="900 Mega – R$ 199,99/mês">900 Mega – R$ 199,99/mês</option>
-                  </optgroup>
-                  <optgroup label="Planos com App + 10% desconto até o vencimento">
-                    <option value="500 Mega + Watch TV – R$ 109,99/mês">500 Mega + Watch TV – R$ 109,99/mês</option>
-                    <option value="600 Mega + Watch TV – R$ 119,99/mês">600 Mega + Watch TV – R$ 119,99/mês</option>
-                  </optgroup>
-                  <optgroup label="Planos com App, Valores fixos">
-                    <option value="600 Mega + Watch TV + HBO MAX ou Telecine – R$ 129,99/mês">600 Mega + Watch TV + HBO MAX ou Telecine – R$ 129,99/mês</option>
-                    <option value="700 Mega + Watch TV + Premiere + ESPN + SporTV + Canais Globo + Telecine – R$ 149,99/mês">700 Mega + Watch TV + Premiere + ESPN + SporTV + Canais Globo + Telecine – R$ 149,99/mês</option>
-                    <option value="900 Mega + Watch TV + Premiere + ESPN + SporTV + Canais Globo + Telecine – R$ 189,99/mês">900 Mega + Watch TV + Premiere + ESPN + SporTV + Canais Globo + Telecine – R$ 189,99/mês</option>
-                  </optgroup>
-                </select>
-              </div>
-              <div class="plan-picker" id="planPicker">
-                <button type="button" class="plan-picker-btn" id="planPickerBtn">
-                  <span class="inp-icon"><i class="ti ti-wifi"></i></span>
-                  <span class="plan-picker-text" id="planPickerText">Selecione o plano</span>
-                  <i class="ti ti-chevron-down plan-picker-arrow"></i>
-                </button>
-                <div class="plan-menu" id="planMenu"></div>
+                <input type="text" id="plano" placeholder="Ex: 600 Mega – R$ 119,99/mês" maxlength="100">
               </div>
             </div>
 
@@ -566,5 +548,10 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 <script src="app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
 </body>
 </html>
