@@ -41,6 +41,7 @@
         <div class="input-wrap">
           <span class="inp-icon"><i class="ti ti-lock"></i></span>
           <input type="password" id="loginSenha" placeholder="Sua senha" autocomplete="current-password">
+          <button type="button" class="eye-btn" onclick="toggleSenha('loginSenha', this)"><i class="ti ti-eye"></i></button>
         </div>
       </div>
       <button class="btn btn-primary" type="button" id="btnLogin">
@@ -68,11 +69,19 @@
         <div class="input-wrap">
           <span class="inp-icon"><i class="ti ti-lock"></i></span>
           <input type="password" id="registerSenha" placeholder="Minimo 6 caracteres" autocomplete="new-password">
+          <button type="button" class="eye-btn" onclick="toggleSenha('registerSenha', this)"><i class="ti ti-eye"></i></button>
         </div>
       </div>
       <button class="btn btn-primary" type="button" id="btnRegister">
         <i class="ti ti-user-plus"></i> Criar conta
       </button>
+      <div class="register-success" id="registerSuccess">
+        <i class="ti ti-circle-check"></i>
+        <div>
+          <strong>Conta criada com sucesso!</strong>
+          <span>Clique em "Entrar" e faça login para continuar.</span>
+        </div>
+      </div>
     </form>
 
     <div class="auth-note" id="firebaseConfigNotice">
@@ -125,7 +134,7 @@
     <a class="nav-item" data-page="instalacoes">
       <i class="ti ti-tool"></i> Instalações
     </a>
-    <a class="nav-item" data-page="financeiro">
+    <a class="nav-item admin-only" data-page="financeiro">
       <i class="ti ti-currency-dollar"></i> Financeiro
     </a>
     <a class="nav-item" data-page="relatorios">
