@@ -2,10 +2,6 @@
 // INFORWNET VENDAS - Firebase Auth + Firestore
 // =============================================
 
-// 1) Crie um projeto no Firebase.
-// 2) Ative Authentication > Email/Senha.
-// 3) Crie o Firestore.
-// 4) Substitua os valores abaixo pelos dados do seu app Web Firebase.
 const firebaseConfig = {
   apiKey: "AIzaSyDERPxEUQDLb-ylqU3ayd2qajZokz5v_Oc",
   authDomain: "comercial-vendas-6de88.firebaseapp.com",
@@ -134,11 +130,8 @@ btnRegister.addEventListener('click', async () => {
   try {
     const credential = await auth.createUserWithEmailAndPassword(email, senha);
     await credential.user.updateProfile({ displayName: nome });
-    // Salva o perfil ANTES do onAuthStateChanged processar o login automático
     await db.collection('users').doc(credential.user.uid).set({
-      nome,
-      email,
-      role: 'user',
+      nome, email, role: 'user',
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     await auth.signOut();
@@ -178,7 +171,6 @@ function startAuthListener() {
     clientesCache = [];
     usuariosCache = [];
 
-    // Reabilita botões caso estejam desativados
     if (btnLogin) btnLogin.disabled = false;
     if (btnRegister) btnRegister.disabled = false;
 
@@ -220,15 +212,9 @@ function applyLoggedUser(user, profile) {
   const roleLabel = isAdmin() ? 'ADMIN' : 'Usuário';
   const initials = getInitials(nome);
 
-  document.querySelectorAll('.avatar').forEach((avatar) => {
-    avatar.textContent = initials;
-  });
-  document.querySelectorAll('.sidebar-user .name, .topbar-user .uname').forEach((el) => {
-    el.textContent = nome;
-  });
-  document.querySelectorAll('.sidebar-user .role').forEach((el) => {
-    el.textContent = roleLabel;
-  });
+  document.querySelectorAll('.avatar').forEach((avatar) => { avatar.textContent = initials; });
+  document.querySelectorAll('.sidebar-user .name, .topbar-user .uname').forEach((el) => { el.textContent = nome; });
+  document.querySelectorAll('.sidebar-user .role').forEach((el) => { el.textContent = roleLabel; });
 
   setText('perfilNome', nome);
   setText('perfilEmail', user.email);
@@ -237,9 +223,7 @@ function applyLoggedUser(user, profile) {
 
 function ensureFirebaseReady(showMessage = true) {
   const ready = isFirebaseConfigured && window.firebase && auth && db;
-  if (!ready && showMessage) {
-    showToast('Configure o Firebase no app.js antes de usar login.', 'ti-alert-circle', true);
-  }
+  if (!ready && showMessage) showToast('Configure o Firebase no app.js antes de usar login.', 'ti-alert-circle', true);
   return ready;
 }
 
@@ -284,17 +268,13 @@ function navigate(pageId) {
   const target = document.getElementById('page-' + pageId);
   if (target) target.classList.add('active');
 
-  navItems.forEach(n => {
-    if (n.dataset.page === pageId) n.classList.add('active');
-  });
+  navItems.forEach(n => { if (n.dataset.page === pageId) n.classList.add('active'); });
 
   sidebar.classList.remove('open');
   overlay.classList.remove('open');
 }
 
-navItems.forEach(item => {
-  item.addEventListener('click', () => navigate(item.dataset.page));
-});
+navItems.forEach(item => { item.addEventListener('click', () => navigate(item.dataset.page)); });
 
 // ── CHAR COUNT TEXTAREA ──
 if (obs && charCount) {
@@ -304,27 +284,18 @@ if (obs && charCount) {
   });
 }
 
-// ── MÁSCARAS E VALIDAÇÕES DO CADASTRO ──
+// ── MÁSCARAS ──
 const onlyDigits = (value) => value.replace(/\D/g, '');
 
 function maskCpf(value) {
   const digits = onlyDigits(value).slice(0, 11);
-  return digits
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  return digits.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
 }
 
 function maskPhone(value) {
   const digits = onlyDigits(value).slice(0, 11);
-  if (digits.length <= 10) {
-    return digits
-      .replace(/(\d{2})(\d)/, '($1) $2')
-      .replace(/(\d{4})(\d)/, '$1-$2');
-  }
-  return digits
-    .replace(/(\d{2})(\d)/, '($1) $2')
-    .replace(/(\d{5})(\d)/, '$1-$2');
+  if (digits.length <= 10) return digits.replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{4})(\d)/, '$1-$2');
+  return digits.replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2');
 }
 
 function maskMoney(value) {
@@ -337,13 +308,11 @@ function maskMoney(value) {
 function isValidCpf(value) {
   const cpf = onlyDigits(value);
   if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
-
   let sum = 0;
   for (let i = 0; i < 9; i++) sum += Number(cpf[i]) * (10 - i);
   let digit = (sum * 10) % 11;
   if (digit === 10) digit = 0;
   if (digit !== Number(cpf[9])) return false;
-
   sum = 0;
   for (let i = 0; i < 10; i++) sum += Number(cpf[i]) * (11 - i);
   digit = (sum * 10) % 11;
@@ -368,32 +337,12 @@ function bindInputRules() {
   nome.addEventListener('input', () => {
     nome.value = nome.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s']/g, '').replace(/\s{2,}/g, ' ').slice(0, 80);
   });
-
-  cpf.addEventListener('input', () => {
-    cpf.value = maskCpf(cpf.value);
-  });
-
-  rg.addEventListener('input', () => {
-    rg.value = onlyDigits(rg.value).slice(0, 9);
-  });
-
-  email.addEventListener('input', () => {
-    email.value = email.value.replace(/\s/g, '').slice(0, 120).toLowerCase();
-  });
-
-  endereco.addEventListener('input', () => {
-    endereco.value = endereco.value.replace(/\s{2,}/g, ' ').slice(0, 120);
-  });
-
-  [tel1, tel2].forEach((field) => {
-    field.addEventListener('input', () => {
-      field.value = maskPhone(field.value);
-    });
-  });
-
-  valorInstalacao.addEventListener('input', () => {
-    valorInstalacao.value = maskMoney(valorInstalacao.value);
-  });
+  cpf.addEventListener('input', () => { cpf.value = maskCpf(cpf.value); });
+  rg.addEventListener('input', () => { rg.value = onlyDigits(rg.value).slice(0, 9); });
+  email.addEventListener('input', () => { email.value = email.value.replace(/\s/g, '').slice(0, 120).toLowerCase(); });
+  endereco.addEventListener('input', () => { endereco.value = endereco.value.replace(/\s{2,}/g, ' ').slice(0, 120); });
+  [tel1, tel2].forEach((field) => { field.addEventListener('input', () => { field.value = maskPhone(field.value); }); });
+  valorInstalacao.addEventListener('input', () => { valorInstalacao.value = maskMoney(valorInstalacao.value); });
 }
 
 function validateCadastro() {
@@ -422,7 +371,7 @@ function validateCadastro() {
 
 bindInputRules();
 
-// ── SELETOR DE PLANOS RESPONSIVO ──
+// ── SELETOR DE PLANOS ──
 function syncPlanPicker() {
   if (!planSelect || !planPickerText) return;
   const selected = planSelect.options[planSelect.selectedIndex];
@@ -443,20 +392,13 @@ function initPlanPicker() {
   planMenu.setAttribute('role', 'listbox');
 
   Array.from(planSelect.children).forEach((item) => {
-    if (item.tagName === 'OPTION' && item.value) {
-      addPlanOption(item.textContent, item.value);
-      return;
-    }
-
+    if (item.tagName === 'OPTION' && item.value) { addPlanOption(item.textContent, item.value); return; }
     if (item.tagName === 'OPTGROUP') {
       const group = document.createElement('div');
       group.className = 'plan-group';
       group.textContent = item.label;
       planMenu.appendChild(group);
-
-      Array.from(item.children).forEach((option) => {
-        addPlanOption(option.textContent, option.value);
-      });
+      Array.from(item.children).forEach((option) => { addPlanOption(option.textContent, option.value); });
     }
   });
 
@@ -474,13 +416,8 @@ function initPlanPicker() {
     planSelect.dispatchEvent(new Event('change', { bubbles: true }));
   });
 
-  document.addEventListener('click', (event) => {
-    if (!planPicker.contains(event.target)) closePlanPicker();
-  });
-
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closePlanPicker();
-  });
+  document.addEventListener('click', (event) => { if (!planPicker.contains(event.target)) closePlanPicker(); });
+  document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closePlanPicker(); });
 
   syncPlanPicker();
 }
@@ -497,7 +434,7 @@ function addPlanOption(text, value) {
 
 initPlanPicker();
 
-// ── FIRESTORE: CLIENTES/VENDAS ──
+// ── CLIENTES ──
 document.getElementById('btnLimpar').addEventListener('click', () => {
   document.getElementById('formCadastro').reset();
   if (charCount) charCount.textContent = '0/500';
@@ -576,87 +513,184 @@ function renderClientes() {
 
   tbody.innerHTML = clientesCache.map((c) => `
     <tr>
-      <td data-label="Nome">${escapeHtml(c.nome)}</td>
-      <td data-label="CPF">${escapeHtml(c.cpf)}</td>
-      <td data-label="Plano">${escapeHtml(c.plano)}</td>
-      <td data-label="Telefone">${escapeHtml(c.tel1)}</td>
-      <td data-label="Data">${escapeHtml(c.data)}</td>
-      <td data-label="Status">
-        <span class="pill ${c.status === 'Ativo' ? 'pill-green' : 'pill-amber'}">${escapeHtml(c.status)}</span>
+      <td data-label="Nome">
+        <span class="cell-icon"><i class="ti ti-user"></i></span>
+        <span class="cell-lbl">Nome</span>
+        <span class="cell-val">${escapeHtml(c.nome)}</span>
       </td>
-      <td data-label="Ações" class="table-actions">
-        <button class="btn btn-outline btn-icon-sm" type="button" title="Ativar/Pendente" onclick="ativarCliente('${c.id}')">
-          <i class="ti ti-check"></i>
+      <td data-label="CPF">
+        <span class="cell-icon"><i class="ti ti-id-badge-2"></i></span>
+        <span class="cell-lbl">CPF</span>
+        <span class="cell-val">${escapeHtml(c.cpf)}</span>
+      </td>
+      <td data-label="Plano">
+        <span class="cell-icon"><i class="ti ti-wifi"></i></span>
+        <span class="cell-lbl">Plano</span>
+        <span class="cell-val">${escapeHtml(c.plano)}</span>
+      </td>
+      <td data-label="Telefone">
+        <span class="cell-icon"><i class="ti ti-phone"></i></span>
+        <span class="cell-lbl">Telefone</span>
+        <span class="cell-val">${escapeHtml(c.tel1)}</span>
+      </td>
+      <td data-label="Data">
+        <span class="cell-icon"><i class="ti ti-calendar"></i></span>
+        <span class="cell-lbl">Data</span>
+        <span class="cell-val">${escapeHtml(c.data)}</span>
+      </td>
+      <td data-label="Status">
+        <span class="cell-icon"><i class="ti ti-award"></i></span>
+        <span class="cell-lbl">Status</span>
+        <span class="cell-val">
+          <span class="pill ${c.status === 'Ativo' ? 'pill-green' : 'pill-amber'}">${escapeHtml(c.status)}</span>
+        </span>
+      </td>
+      <td class="table-actions">
+        <button class="btn btn-action btn-action-confirm" type="button" title="Ativar/Pendente" onclick="ativarCliente('${c.id}')">
+          <i class="ti ti-circle-check"></i><span class="btn-lbl">Confirmar</span>
         </button>
-        <button class="btn btn-danger-outline btn-icon-sm" type="button" title="Remover cliente" onclick="removerCliente('${c.id}')">
-          <i class="ti ti-trash"></i>
+        <button class="btn btn-action btn-action-edit" type="button" title="Editar cliente" onclick="editarCliente('${c.id}')">
+          <i class="ti ti-edit"></i><span class="btn-lbl">Editar</span>
         </button>
-        <button class="btn btn-whatsapp btn-icon-sm" type="button" title="Exportar para WhatsApp" onclick="exportarClienteWhatsApp('${c.id}')">
-          <i class="ti ti-brand-whatsapp"></i>
+        <button class="btn btn-action btn-action-whatsapp" type="button" title="Exportar para WhatsApp" onclick="exportarClienteWhatsApp('${c.id}')">
+          <i class="ti ti-brand-whatsapp"></i><span class="btn-lbl">WhatsApp</span>
         </button>
-        <button class="btn btn-outline btn-icon-sm" type="button" title="Copiar texto completo" onclick="copiarClienteTexto('${c.id}')">
-          <i class="ti ti-copy"></i>
+        <button class="btn btn-action btn-action-copy" type="button" title="Copiar texto" onclick="copiarClienteTexto('${c.id}')">
+          <i class="ti ti-copy"></i><span class="btn-lbl">Copiar</span>
+        </button>
+        <button class="btn btn-action btn-action-delete" type="button" title="Excluir cliente" onclick="removerCliente('${c.id}')">
+          <i class="ti ti-trash"></i><span class="btn-lbl">Excluir</span>
         </button>
       </td>
     </tr>
   `).join('');
 }
 
+// ── EDITAR CLIENTE ──
+window.editarCliente = function(id) {
+  const cliente = clientesCache.find(c => c.id === id);
+  if (!cliente || !canAccessOwner(cliente.userId)) return showToast('Sem permissão para editar este cliente.', 'ti-alert-circle', true);
+
+  let modal = document.getElementById('editModal');
+  if (modal) modal.remove();
+
+  modal = document.createElement('div');
+  modal.id = 'editModal';
+  modal.className = 'edit-modal-overlay';
+  modal.innerHTML = `
+    <div class="edit-modal-card">
+      <div class="edit-modal-header">
+        <span><i class="ti ti-edit"></i> Editar Cliente</span>
+        <button class="edit-modal-close" onclick="document.getElementById('editModal').remove()">
+          <i class="ti ti-x"></i>
+        </button>
+      </div>
+      <div class="edit-modal-body">
+        <div class="form-group">
+          <label>Nome</label>
+          <div class="input-wrap">
+            <span class="inp-icon"><i class="ti ti-user"></i></span>
+            <input type="text" id="editNome" value="${escapeHtml(cliente.nome)}" maxlength="80">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Plano</label>
+          <div class="input-wrap">
+            <span class="inp-icon"><i class="ti ti-wifi"></i></span>
+            <input type="text" id="editPlano" value="${escapeHtml(cliente.plano)}" maxlength="100">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Telefone 01</label>
+          <div class="input-wrap">
+            <span class="inp-icon"><i class="ti ti-phone"></i></span>
+            <input type="text" id="editTel1" value="${escapeHtml(cliente.tel1)}" maxlength="15" inputmode="numeric">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Telefone 02</label>
+          <div class="input-wrap">
+            <span class="inp-icon"><i class="ti ti-phone"></i></span>
+            <input type="text" id="editTel2" value="${escapeHtml(cliente.tel2 || '')}" maxlength="15" inputmode="numeric">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Endereço</label>
+          <div class="input-wrap">
+            <span class="inp-icon"><i class="ti ti-map-pin"></i></span>
+            <input type="text" id="editEndereco" value="${escapeHtml(cliente.endereco || '')}" maxlength="120">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Observações</label>
+          <textarea id="editObs" maxlength="500" style="resize:vertical;min-height:72px;padding:10px;border:1px solid var(--input-border);border-radius:var(--radius);background:var(--bg-card);color:var(--txt-primary);font-family:var(--font);font-size:13.5px;outline:none;width:100%">${escapeHtml(cliente.obs || '')}</textarea>
+        </div>
+      </div>
+      <div class="edit-modal-footer">
+        <button class="btn btn-danger-outline" onclick="document.getElementById('editModal').remove()">
+          <i class="ti ti-x"></i> Cancelar
+        </button>
+        <button class="btn btn-primary" onclick="salvarEdicao('${id}')">
+          <i class="ti ti-device-floppy"></i> Salvar
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+};
+
+window.salvarEdicao = async function(id) {
+  const nome = document.getElementById('editNome').value.trim();
+  const plano = document.getElementById('editPlano').value.trim();
+  const tel1 = document.getElementById('editTel1').value.trim();
+  const tel2 = document.getElementById('editTel2').value.trim();
+  const endereco = document.getElementById('editEndereco').value.trim();
+  const obs = document.getElementById('editObs').value.trim();
+
+  if (nome.length < 3) return showToast('Nome inválido.', 'ti-alert-circle', true);
+  if (!plano) return showToast('Informe o plano.', 'ti-alert-circle', true);
+
+  try {
+    await db.collection('clientes').doc(id).update({
+      nome, plano, tel1, tel2, endereco, obs,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    document.getElementById('editModal').remove();
+    showToast('Cliente atualizado!', 'ti-check');
+  } catch (err) {
+    showToast('Erro ao salvar alterações.', 'ti-alert-circle', true);
+  }
+};
+
 function formatClienteText(cliente) {
   const field = (label, value) => `${label}: ${value || '-'}`;
-
   return [
-    '*Cadastro de Cliente - Inforwnet*',
-    '',
-    field('Nome', cliente.nome),
-    field('CPF', cliente.cpf),
-    field('RG', cliente.rg),
-    field('Email', cliente.email),
-    field('Endereço', cliente.endereco),
-    field('Plano', cliente.plano),
-    field('Vencimento', cliente.vencimento ? `Dia ${cliente.vencimento}` : ''),
-    field('Telefone 01', cliente.tel1),
-    field('Telefone 02', cliente.tel2),
-    field('Forma de pagamento', cliente.pgto),
-    field('Valor da instalação', cliente.valorInstalacao),
-    field('Parcelamento', cliente.parcelas),
-    field('Observações', cliente.obs),
-    field('Data do cadastro', cliente.data),
-    field('Status', cliente.status),
+    '*Cadastro de Cliente - Inforwnet*', '',
+    field('Nome', cliente.nome), field('CPF', cliente.cpf), field('RG', cliente.rg),
+    field('Email', cliente.email), field('Endereço', cliente.endereco),
+    field('Plano', cliente.plano), field('Vencimento', cliente.vencimento ? `Dia ${cliente.vencimento}` : ''),
+    field('Telefone 01', cliente.tel1), field('Telefone 02', cliente.tel2),
+    field('Forma de pagamento', cliente.pgto), field('Valor da instalação', cliente.valorInstalacao),
+    field('Parcelamento', cliente.parcelas), field('Observações', cliente.obs),
+    field('Data do cadastro', cliente.data), field('Status', cliente.status),
     field('Vendedor', cliente.userNome)
   ].join('\n');
-}
-
-function normalizePhoneWhatsapp(phone) {
-  const digits = String(phone || '').replace(/\D/g, '');
-  if (!digits) return '';
-  if (digits.startsWith('55') && digits.length >= 12) return digits;
-  if (digits.length >= 10) return `55${digits}`;
-  return digits;
 }
 
 window.exportarClienteWhatsApp = function(id) {
   const cliente = clientesCache.find((c) => c.id === id);
   if (!cliente) return;
-
-  const text = formatClienteText(cliente);
-  
-  // URL sem o telefone para abrir a lista de contatos do WhatsApp
-  const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-
-  window.open(url, '_blank', 'noopener,noreferrer');
+  window.open(`https://wa.me/?text=${encodeURIComponent(formatClienteText(cliente))}`, '_blank', 'noopener,noreferrer');
 };
 
 window.copiarClienteTexto = async function(id) {
   const cliente = clientesCache.find((c) => c.id === id);
   if (!cliente) return;
-
   const text = formatClienteText(cliente);
-
   try {
     await navigator.clipboard.writeText(text);
     showToast('Texto copiado!', 'ti-copy');
-    return;
   } catch (error) {
     const area = document.createElement('textarea');
     area.value = text;
@@ -667,18 +701,13 @@ window.copiarClienteTexto = async function(id) {
     area.select();
     const copied = document.execCommand('copy');
     document.body.removeChild(area);
-    showToast(
-      copied ? 'Texto copiado!' : 'Não foi possível copiar o texto.',
-      copied ? 'ti-copy' : 'ti-alert-circle',
-      !copied
-    );
+    showToast(copied ? 'Texto copiado!' : 'Não foi possível copiar.', copied ? 'ti-copy' : 'ti-alert-circle', !copied);
   }
 };
 
 window.ativarCliente = async function(id) {
   const cliente = clientesCache.find((c) => c.id === id);
   if (!cliente || !canAccessOwner(cliente.userId)) return showToast('Sem permissão para alterar este cliente.', 'ti-alert-circle', true);
-
   try {
     await db.collection('clientes').doc(id).update({
       status: cliente.status === 'Ativo' ? 'Pendente' : 'Ativo',
@@ -693,7 +722,6 @@ window.ativarCliente = async function(id) {
 window.removerCliente = async function(id) {
   const cliente = clientesCache.find((c) => c.id === id);
   if (!cliente || !canAccessOwner(cliente.userId)) return showToast('Sem permissão para remover este cliente.', 'ti-alert-circle', true);
-
   try {
     await db.collection('clientes').doc(id).delete();
     showToast('Cliente removido.', 'ti-trash');
@@ -702,31 +730,21 @@ window.removerCliente = async function(id) {
   }
 };
 
-// ── FIRESTORE: USUÁRIOS ──
+// ── USUÁRIOS ──
 function listenUsuarios() {
   if (!isAdmin()) return;
   unsubscribeUsuarios = db.collection('users').onSnapshot((snapshot) => {
     usuariosCache = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     usuariosCache.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
     renderUsuarios();
-  }, () => {
-    showToast('Erro ao carregar usuários.', 'ti-alert-circle', true);
-  });
+  }, () => { showToast('Erro ao carregar usuários.', 'ti-alert-circle', true); });
 }
 
 function renderUsuarios() {
   const tbody = document.getElementById('tbodyUsuarios');
   if (!tbody) return;
-
-  if (!isAdmin()) {
-    tbody.innerHTML = emptyRow(4, 'Acesso permitido somente para ADMIN.');
-    return;
-  }
-
-  if (usuariosCache.length === 0) {
-    tbody.innerHTML = emptyRow(4, 'Nenhum usuário carregado.');
-    return;
-  }
+  if (!isAdmin()) { tbody.innerHTML = emptyRow(4, 'Acesso permitido somente para ADMIN.'); return; }
+  if (usuariosCache.length === 0) { tbody.innerHTML = emptyRow(4, 'Nenhum usuário carregado.'); return; }
 
   tbody.innerHTML = usuariosCache.map((u) => `
     <tr>
@@ -748,16 +766,10 @@ function renderUsuarios() {
 window.alterarRoleUsuario = async function(uid, role) {
   if (!isAdmin()) return showToast('Acesso permitido somente para ADMIN.', 'ti-alert-circle', true);
   if (!['admin', 'user'].includes(role)) return;
-
   try {
-    await db.collection('users').doc(uid).update({
-      role,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    await db.collection('users').doc(uid).update({ role, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
     showToast('Permissão atualizada.', 'ti-check');
-  } catch (error) {
-    showToast('Erro ao atualizar permissão.', 'ti-alert-circle', true);
-  }
+  } catch (error) { showToast('Erro ao atualizar permissão.', 'ti-alert-circle', true); }
 };
 
 // ── DASHBOARD ──
@@ -792,36 +804,16 @@ function atualizarDash() {
 }
 
 // ── HELPERS ──
-function isAdmin() {
-  return currentProfile && currentProfile.role === 'admin';
-}
-
-function canAccessOwner(ownerUid) {
-  return isAdmin() || (currentUser && ownerUid === currentUser.uid);
-}
-
-function setText(id, value) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = value;
-}
+function isAdmin() { return currentProfile && currentProfile.role === 'admin'; }
+function canAccessOwner(ownerUid) { return isAdmin() || (currentUser && ownerUid === currentUser.uid); }
+function setText(id, value) { const el = document.getElementById(id); if (el) el.textContent = value; }
 
 function getInitials(name) {
-  return String(name || 'U')
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase();
+  return String(name || 'U').trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 }
 
 function escapeHtml(value) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+  return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
 function emptyRow(colspan, message) {
