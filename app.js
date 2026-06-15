@@ -585,16 +585,95 @@ function renderClientes() {
         <span class="pill ${c.status === 'Ativo' ? 'pill-green' : 'pill-amber'}">${escapeHtml(c.status)}</span>
       </td>
       <td data-label="Ações" class="table-actions">
-        <button class="btn btn-outline" style="padding:5px 10px;font-size:12px" onclick="ativarCliente('${c.id}')">
+        <button class="btn btn-outline btn-icon-sm" type="button" title="Ativar/Pendente" onclick="ativarCliente('${c.id}')">
           <i class="ti ti-check"></i>
         </button>
-        <button class="btn btn-danger-outline" style="padding:5px 10px;font-size:12px;margin-left:4px" onclick="removerCliente('${c.id}')">
+        <button class="btn btn-danger-outline btn-icon-sm" type="button" title="Remover cliente" onclick="removerCliente('${c.id}')">
           <i class="ti ti-trash"></i>
+        </button>
+        <button class="btn btn-whatsapp btn-icon-sm" type="button" title="Exportar para WhatsApp" onclick="exportarClienteWhatsApp('${c.id}')">
+          <i class="ti ti-brand-whatsapp"></i>
+        </button>
+        <button class="btn btn-outline btn-icon-sm" type="button" title="Copiar texto completo" onclick="copiarClienteTexto('${c.id}')">
+          <i class="ti ti-copy"></i>
         </button>
       </td>
     </tr>
   `).join('');
 }
+
+function formatClienteText(cliente) {
+  const field = (label, value) => `${label}: ${value || '-'}`;
+
+  return [
+    '*Cadastro de Cliente - Inforwnet*',
+    '',
+    field('Nome', cliente.nome),
+    field('CPF', cliente.cpf),
+    field('RG', cliente.rg),
+    field('Email', cliente.email),
+    field('Endereço', cliente.endereco),
+    field('Plano', cliente.plano),
+    field('Vencimento', cliente.vencimento ? `Dia ${cliente.vencimento}` : ''),
+    field('Telefone 01', cliente.tel1),
+    field('Telefone 02', cliente.tel2),
+    field('Forma de pagamento', cliente.pgto),
+    field('Valor da instalação', cliente.valorInstalacao),
+    field('Parcelamento', cliente.parcelas),
+    field('Observações', cliente.obs),
+    field('Data do cadastro', cliente.data),
+    field('Status', cliente.status),
+    field('Vendedor', cliente.userNome)
+  ].join('\n');
+}
+
+function normalizePhoneWhatsapp(phone) {
+  const digits = String(phone || '').replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.startsWith('55') && digits.length >= 12) return digits;
+  if (digits.length >= 10) return `55${digits}`;
+  return digits;
+}
+
+window.exportarClienteWhatsApp = function(id) {
+  const cliente = clientesCache.find((c) => c.id === id);
+  if (!cliente) return;
+
+  const text = formatClienteText(cliente);
+  
+  // URL sem o telefone para abrir a lista de contatos do WhatsApp
+  const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+
+  window.open(url, '_blank', 'noopener,noreferrer');
+};
+
+window.copiarClienteTexto = async function(id) {
+  const cliente = clientesCache.find((c) => c.id === id);
+  if (!cliente) return;
+
+  const text = formatClienteText(cliente);
+
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('Texto copiado!', 'ti-copy');
+    return;
+  } catch (error) {
+    const area = document.createElement('textarea');
+    area.value = text;
+    area.setAttribute('readonly', '');
+    area.style.position = 'fixed';
+    area.style.left = '-9999px';
+    document.body.appendChild(area);
+    area.select();
+    const copied = document.execCommand('copy');
+    document.body.removeChild(area);
+    showToast(
+      copied ? 'Texto copiado!' : 'Não foi possível copiar o texto.',
+      copied ? 'ti-copy' : 'ti-alert-circle',
+      !copied
+    );
+  }
+};
 
 window.ativarCliente = async function(id) {
   const cliente = clientesCache.find((c) => c.id === id);
