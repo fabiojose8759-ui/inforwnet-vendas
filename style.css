@@ -62,7 +62,19 @@ body {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: var(--bg-page);
+  background-color: #0f172a;
+  background-image: url('fundo-login.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.auth-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  pointer-events: none;
 }
 
 body.auth-active .auth-shell {
@@ -76,6 +88,8 @@ body.auth-active .sidebar-overlay {
 }
 
 .auth-card {
+  position: relative;
+  z-index: 1;
   width: min(100%, 420px);
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -686,6 +700,27 @@ body.role-admin .admin-only {
 }
 
 .btn-danger-outline:hover { background: #fef2f2; }
+
+.btn-icon-sm {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+.btn-whatsapp {
+  background: transparent;
+  border: 1px solid #25d366;
+  color: #25d366;
+}
+
+.btn-whatsapp:hover { background: rgba(37, 211, 102, 0.12); }
+
+.table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 4px;
+}
 
 .btn-primary {
   background: var(--azul);
