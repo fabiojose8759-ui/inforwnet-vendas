@@ -574,90 +574,216 @@ window.editarCliente = function(id) {
   let modal = document.getElementById('editModal');
   if (modal) modal.remove();
 
+  const sel = (field, val) => {
+    const opts = { vencimento: ['','5','10','15','20','25','30'], pgto: ['','Pix','Boleto','Cartão de Crédito','Cartão de Débito','Dinheiro'], parcelas: ['','À vista','2x','3x'], status: ['Pendente','Ativo'] };
+    const labels = { vencimento: ['Selecione o dia','Dia 5','Dia 10','Dia 15','Dia 20','Dia 25','Dia 30'], pgto: ['Selecione a forma de pagamento','Pix','Boleto','Cartão de Crédito','Cartão de Débito','Dinheiro'], parcelas: ['Selecione o parcelamento','À vista','2x','3x'], status: ['Pendente','Ativo'] };
+    return opts[field].map((v,i) => `<option value="${v}" ${v == val ? 'selected' : ''}>${labels[field][i]}</option>`).join('');
+  };
+
+  const inputStyle = 'width:100%;padding:10px 10px 10px 38px;border:1px solid var(--input-border);border-radius:var(--radius);background:var(--bg-card);color:var(--txt-primary);font-family:var(--font);font-size:13.5px;outline:none;box-sizing:border-box;';
+  const selectStyle = 'width:100%;padding:10px 10px 10px 38px;border:1px solid var(--input-border);border-radius:var(--radius);background:var(--bg-card);color:var(--txt-primary);font-family:var(--font);font-size:13.5px;outline:none;box-sizing:border-box;appearance:none;';
+
   modal = document.createElement('div');
   modal.id = 'editModal';
   modal.className = 'edit-modal-overlay';
   modal.innerHTML = `
-    <div class="edit-modal-card">
+    <div class="edit-modal-card" style="max-width:780px;width:96%;max-height:92vh;overflow-y:auto;padding:0;">
+
       <div class="edit-modal-header">
         <span><i class="ti ti-edit"></i> Editar Cliente</span>
         <button class="edit-modal-close" onclick="document.getElementById('editModal').remove()">
           <i class="ti ti-x"></i>
         </button>
       </div>
-      <div class="edit-modal-body">
-        <div class="form-group">
-          <label>Nome</label>
-          <div class="input-wrap">
-            <span class="inp-icon"><i class="ti ti-user"></i></span>
-            <input type="text" id="editNome" value="${escapeHtml(cliente.nome)}" maxlength="80">
+
+      <div style="padding:20px 20px 0;">
+
+        <div class="card">
+          <div class="card-title"><i class="ti ti-id-badge"></i> Dados do Cliente</div>
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label>Nome: *</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-user"></i></span>
+                <input type="text" id="editNome" value="${escapeHtml(cliente.nome)}" placeholder="Digite o nome completo" maxlength="80">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>CPF: *</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-id-badge-2"></i></span>
+                <input type="text" id="editCpf" value="${escapeHtml(cliente.cpf || '')}" placeholder="000.000.000-00" maxlength="14" inputmode="numeric">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>RG:</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-id-badge"></i></span>
+                <input type="text" id="editRg" value="${escapeHtml(cliente.rg || '')}" placeholder="Digite o RG" maxlength="9" inputmode="numeric">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Email:</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-mail"></i></span>
+                <input type="email" id="editEmail" value="${escapeHtml(cliente.email || '')}" placeholder="email@exemplo.com" maxlength="120">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Endereço:</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-map-pin"></i></span>
+                <input type="text" id="editEndereco" value="${escapeHtml(cliente.endereco || '')}" placeholder="Digite o endereço completo" maxlength="120">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Dia de Vencimento:</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-calendar"></i></span>
+                <select id="editVencimento">${sel('vencimento', cliente.vencimento)}</select>
+              </div>
+            </div>
+
+            <div class="form-group col3">
+              <label>Plano Contratado: *</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-wifi"></i></span>
+                <input type="text" id="editPlano" value="${escapeHtml(cliente.plano || '')}" placeholder="Ex: 600 Mega – R$ 119,99/mês" maxlength="100">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Telefone 01: *</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-phone"></i></span>
+                <input type="text" id="editTel1" value="${escapeHtml(cliente.tel1 || '')}" placeholder="(00) 00000-0000" maxlength="15" inputmode="numeric">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Telefone 02:</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-phone"></i></span>
+                <input type="text" id="editTel2" value="${escapeHtml(cliente.tel2 || '')}" placeholder="(00) 00000-0000" maxlength="15" inputmode="numeric">
+              </div>
+            </div>
+
           </div>
         </div>
-        <div class="form-group">
-          <label>Plano</label>
-          <div class="input-wrap">
-            <span class="inp-icon"><i class="ti ti-wifi"></i></span>
-            <input type="text" id="editPlano" value="${escapeHtml(cliente.plano)}" maxlength="100">
+
+        <div class="card">
+          <div class="card-title"><i class="ti ti-credit-card"></i> Forma de Pagamento da Instalação</div>
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label>Forma de Pagamento:</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-credit-card"></i></span>
+                <select id="editPgto">${sel('pgto', cliente.pgto)}</select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Valor da Instalação:</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-currency-dollar"></i></span>
+                <input type="text" id="editValorInstalacao" value="${escapeHtml(cliente.valorInstalacao || '')}" placeholder="R$ 0,00" maxlength="14" inputmode="numeric">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Parcelamento:</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-credit-card"></i></span>
+                <select id="editParcelas">${sel('parcelas', cliente.parcelas)}</select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Status:</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-award"></i></span>
+                <select id="editStatus">${sel('status', cliente.status)}</select>
+              </div>
+            </div>
+
+            <div class="form-group col3">
+              <label>Observações:</label>
+              <textarea id="editObs" placeholder="Digite observações adicionais (opcional)" maxlength="500">${escapeHtml(cliente.obs || '')}</textarea>
+              <div class="char-count" id="editObsCount">${(cliente.obs || '').length}/500</div>
+            </div>
+
           </div>
         </div>
-        <div class="form-group">
-          <label>Telefone 01</label>
-          <div class="input-wrap">
-            <span class="inp-icon"><i class="ti ti-phone"></i></span>
-            <input type="text" id="editTel1" value="${escapeHtml(cliente.tel1)}" maxlength="15" inputmode="numeric">
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Telefone 02</label>
-          <div class="input-wrap">
-            <span class="inp-icon"><i class="ti ti-phone"></i></span>
-            <input type="text" id="editTel2" value="${escapeHtml(cliente.tel2 || '')}" maxlength="15" inputmode="numeric">
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Endereço</label>
-          <div class="input-wrap">
-            <span class="inp-icon"><i class="ti ti-map-pin"></i></span>
-            <input type="text" id="editEndereco" value="${escapeHtml(cliente.endereco || '')}" maxlength="120">
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Observações</label>
-          <textarea id="editObs" maxlength="500" style="resize:vertical;min-height:72px;padding:10px;border:1px solid var(--input-border);border-radius:var(--radius);background:var(--bg-card);color:var(--txt-primary);font-family:var(--font);font-size:13.5px;outline:none;width:100%">${escapeHtml(cliente.obs || '')}</textarea>
-        </div>
+
       </div>
-      <div class="edit-modal-footer">
+
+      <div class="edit-modal-footer" style="position:sticky;bottom:0;background:var(--bg-card);border-top:1px solid var(--border);padding:14px 20px;display:flex;gap:10px;justify-content:flex-end;">
         <button class="btn btn-danger-outline" onclick="document.getElementById('editModal').remove()">
           <i class="ti ti-x"></i> Cancelar
         </button>
         <button class="btn btn-primary" onclick="salvarEdicao('${id}')">
-          <i class="ti ti-device-floppy"></i> Salvar
+          <i class="ti ti-device-floppy"></i> Salvar Alterações
         </button>
       </div>
+
     </div>
   `;
   document.body.appendChild(modal);
   modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+  // Máscaras
+  const f = (elId, fn) => { const el = document.getElementById(elId); if (el) el.addEventListener('input', () => { el.value = fn(el.value); }); };
+  f('editCpf', maskCpf);
+  f('editTel1', maskPhone);
+  f('editTel2', maskPhone);
+  f('editValorInstalacao', maskMoney);
+  f('editRg', v => onlyDigits(v).slice(0, 9));
+  const obsEl = document.getElementById('editObs');
+  const obsCount = document.getElementById('editObsCount');
+  if (obsEl && obsCount) obsEl.addEventListener('input', () => {
+    if (obsEl.value.length > 500) obsEl.value = obsEl.value.slice(0, 500);
+    obsCount.textContent = obsEl.value.length + '/500';
+  });
 };
 
 window.salvarEdicao = async function(id) {
   const nome = document.getElementById('editNome').value.trim();
+  const cpf = document.getElementById('editCpf').value.trim();
+  const rg = document.getElementById('editRg').value.trim();
+  const email = document.getElementById('editEmail').value.trim();
+  const endereco = document.getElementById('editEndereco').value.trim();
   const plano = document.getElementById('editPlano').value.trim();
   const tel1 = document.getElementById('editTel1').value.trim();
   const tel2 = document.getElementById('editTel2').value.trim();
-  const endereco = document.getElementById('editEndereco').value.trim();
+  const vencimento = document.getElementById('editVencimento').value;
+  const pgto = document.getElementById('editPgto').value;
+  const valorInstalacao = document.getElementById('editValorInstalacao').value.trim();
+  const parcelas = document.getElementById('editParcelas').value;
+  const status = document.getElementById('editStatus').value;
   const obs = document.getElementById('editObs').value.trim();
 
-  if (nome.length < 3) return showToast('Nome inválido.', 'ti-alert-circle', true);
-  if (!plano) return showToast('Informe o plano.', 'ti-alert-circle', true);
+  if (nome.length < 3) return showToast('Nome inválido. Mínimo 3 caracteres.', 'ti-alert-circle', true);
+  if (!plano) return showToast('Informe o plano contratado.', 'ti-alert-circle', true);
+  if (cpf && onlyDigits(cpf).length !== 11) return showToast('CPF inválido. Informe 11 dígitos.', 'ti-alert-circle', true);
+  if (email && !isValidEmail(email)) return showToast('Email inválido.', 'ti-alert-circle', true);
+  const tel1Digits = onlyDigits(tel1);
+  if (tel1Digits.length < 10 || tel1Digits.length > 11) return showToast('Telefone 01 inválido.', 'ti-alert-circle', true);
 
   try {
     await db.collection('clientes').doc(id).update({
-      nome, plano, tel1, tel2, endereco, obs,
+      nome, cpf, rg, email, endereco, plano, tel1, tel2,
+      vencimento, pgto, valorInstalacao, parcelas, status, obs,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     document.getElementById('editModal').remove();
-    showToast('Cliente atualizado!', 'ti-check');
+    showToast('Cliente atualizado com sucesso!', 'ti-check');
   } catch (err) {
     showToast('Erro ao salvar alterações.', 'ti-alert-circle', true);
   }
@@ -773,6 +899,9 @@ window.alterarRoleUsuario = async function(uid, role) {
 };
 
 // ── DASHBOARD ──
+let chartCadastros = null;
+let chartMeta = null;
+
 function atualizarDash() {
   const total = clientesCache.length;
   const ativos = clientesCache.filter(c => c.status === 'Ativo').length;
@@ -783,24 +912,151 @@ function atualizarDash() {
   setText('dash-ativos', ativos);
   setText('dash-hoje', hojeCount);
 
-  const tbody = document.getElementById('tbodyRecentes');
-  if (!tbody) return;
-
-  const recentes = clientesCache.slice(0, 5);
-  if (recentes.length === 0) {
-    tbody.innerHTML = emptyRow(5, currentUser ? 'Nenhum cadastro ainda.' : 'Faça login para visualizar cadastros.');
-    return;
+  // Data formatada
+  const dataEl = document.getElementById('dash-data-hoje');
+  if (dataEl) {
+    dataEl.textContent = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
   }
 
-  tbody.innerHTML = recentes.map(c => `
-    <tr>
-      <td data-label="Nome">${escapeHtml(c.nome)}</td>
-      <td data-label="CPF">${escapeHtml(c.cpf)}</td>
-      <td data-label="Plano">${escapeHtml(c.plano)}</td>
-      <td data-label="Data">${escapeHtml(c.data)}</td>
-      <td data-label="Status"><span class="pill ${c.status === 'Ativo' ? 'pill-green' : 'pill-amber'}">${escapeHtml(c.status)}</span></td>
-    </tr>
-  `).join('');
+  // Meta
+  const META = 30;
+  const pct = total > 0 ? Math.round((total / META) * 100) : 0;
+  setText('dash-meta-pct', `${total} (${pct}%)`);
+
+  // Gráfico de linha — últimos 7 dias
+  const diasLabels = [];
+  const diasCount = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const label = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    const dateStr = d.toLocaleDateString('pt-BR');
+    diasLabels.push(label);
+    diasCount.push(clientesCache.filter(c => c.data === dateStr).length);
+  }
+
+  const ctxLine = document.getElementById('chartCadastros');
+  if (ctxLine) {
+    if (chartCadastros) chartCadastros.destroy();
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+    const labelColor = isDark ? '#94a3b8' : '#6b7280';
+    chartCadastros = new Chart(ctxLine, {
+      type: 'line',
+      data: {
+        labels: diasLabels,
+        datasets: [{
+          label: 'Cadastros',
+          data: diasCount,
+          borderColor: '#2563eb',
+          backgroundColor: (ctx) => {
+            const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 200);
+            g.addColorStop(0, 'rgba(37,99,235,0.18)');
+            g.addColorStop(1, 'rgba(37,99,235,0)');
+            return g;
+          },
+          fill: true,
+          tension: 0.4,
+          pointRadius: 5,
+          pointBackgroundColor: '#2563eb',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          borderWidth: 2.5
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y} cadastro(s)` } } },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { color: labelColor, font: { size: 11 } } },
+          y: { grid: { color: gridColor }, ticks: { color: labelColor, font: { size: 11 }, precision: 0, stepSize: 1 }, beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  // Donut Chart — Meta
+  const ctxDonut = document.getElementById('chartMeta');
+  if (ctxDonut) {
+    if (chartMeta) chartMeta.destroy();
+    const alcancado = Math.min(total, META);
+    const restante = Math.max(META - total, 0);
+    chartMeta = new Chart(ctxDonut, {
+      type: 'doughnut',
+      data: {
+        datasets: [{
+          data: [alcancado, restante],
+          backgroundColor: ['#2563eb', '#e5e7eb'],
+          borderWidth: 0,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: false,
+        cutout: '72%',
+        plugins: { legend: { display: false }, tooltip: { enabled: false } }
+      }
+    });
+  }
+
+  // Lista Recentes
+  const listaEl = document.getElementById('listaRecentes');
+  if (listaEl) {
+    const recentes = clientesCache.slice(0, 5);
+    if (recentes.length === 0) {
+      listaEl.innerHTML = `<div class="dash-empty">${currentUser ? 'Nenhum cadastro ainda.' : 'Faça login para visualizar.'}</div>`;
+    } else {
+      const cores = ['av-0','av-1','av-2','av-3','av-4','av-5','av-6','av-7'];
+      listaEl.innerHTML = recentes.map((c, i) => {
+        const initials = getInitials(c.nome);
+        const cor = cores[i % cores.length];
+        const pillClass = c.status === 'Ativo' ? 'pill-green' : 'pill-amber';
+        return `
+          <div class="recente-item">
+            <div class="recente-avatar ${cor}">${escapeHtml(initials)}</div>
+            <div class="recente-info">
+              <div class="recente-nome">${escapeHtml(c.nome)}</div>
+              <div class="recente-cpf">${escapeHtml(c.cpf || '-')}</div>
+            </div>
+            <div class="recente-mid">
+              <span class="recente-plano">${escapeHtml(c.plano || '-')}</span>
+              <span class="recente-data">${escapeHtml(c.data || '-')}</span>
+              <span class="pill ${pillClass}">${escapeHtml(c.status)}</span>
+            </div>
+          </div>`;
+      }).join('');
+    }
+  }
+
+  // Timeline de Atividades
+  const tlEl = document.getElementById('dashTimeline');
+  if (tlEl) {
+    const recentes = clientesCache.slice(0, 5);
+    if (recentes.length === 0) {
+      tlEl.innerHTML = `<div class="dash-empty">Sem atividades.</div>`;
+    } else {
+      const tipos = [
+        { icon: 'ti-user-plus', cls: 'tl-blue', title: 'Novo cadastro realizado' },
+        { icon: 'ti-circle-check', cls: 'tl-green', title: 'Cliente confirmado' },
+        { icon: 'ti-clock', cls: 'tl-amber', title: 'Cadastro pendente' },
+        { icon: 'ti-user', cls: 'tl-purple', title: 'Novo cliente cadastrado' },
+        { icon: 'ti-refresh', cls: 'tl-blue', title: 'Status atualizado' }
+      ];
+      tlEl.innerHTML = recentes.map((c, i) => {
+        const t = tipos[i % tipos.length];
+        const quando = i === 0 ? 'Agora há pouco' : i === 1 ? '10 minutos atrás' : i === 2 ? '1 hora atrás' : `${c.data || '-'}`;
+        return `
+          <div class="timeline-item">
+            <div class="timeline-dot ${t.cls}"><i class="ti ${t.icon}"></i></div>
+            <div class="tl-body">
+              <div class="tl-title">${t.title}</div>
+              <div class="tl-name">${escapeHtml(c.nome)}</div>
+              <div class="tl-time">${quando}</div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+  }
 }
 
 // ── HELPERS ──
