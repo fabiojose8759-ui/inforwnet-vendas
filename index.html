@@ -201,54 +201,118 @@
 
     <!-- ── DASHBOARD ── -->
     <div class="page-section" id="page-dashboard">
-      <div class="page-header">
-        <div class="ph-icon"><i class="ti ti-layout-dashboard"></i></div>
+
+      <!-- Header -->
+      <div class="dash-header">
         <div>
           <div class="ph-title">Dashboard</div>
           <div class="ph-sub">Resumo geral das suas vendas</div>
         </div>
+        <div class="dash-date">
+          <i class="ti ti-calendar"></i>
+          <span id="dash-data-hoje"></span>
+        </div>
       </div>
 
+      <!-- Stat Cards -->
       <div class="dash-stats">
         <div class="stat-card">
-          <div class="sc-label">Total de clientes</div>
+          <div class="sc-top">
+            <div class="sc-icon sc-icon-blue"><i class="ti ti-users"></i></div>
+            <span class="sc-badge sc-badge-up"><i class="ti ti-arrow-up"></i> Todos</span>
+          </div>
           <div class="sc-val" id="dash-total">0</div>
-          <div class="sc-sub"><i class="ti ti-arrow-up"></i> Todos os cadastros</div>
+          <div class="sc-label">Total de clientes</div>
+          <div class="sc-sub">Todos os cadastros</div>
         </div>
         <div class="stat-card">
-          <div class="sc-label">Clientes ativos</div>
+          <div class="sc-top">
+            <div class="sc-icon sc-icon-green"><i class="ti ti-user-check"></i></div>
+            <span class="sc-badge sc-badge-up"><i class="ti ti-check"></i> Ativos</span>
+          </div>
           <div class="sc-val" id="dash-ativos">0</div>
-          <div class="sc-sub"><i class="ti ti-check"></i> Confirmados</div>
+          <div class="sc-label">Clientes ativos</div>
+          <div class="sc-sub sc-success">Confirmados</div>
         </div>
         <div class="stat-card">
-          <div class="sc-label">Cadastros hoje</div>
+          <div class="sc-top">
+            <div class="sc-icon sc-icon-purple"><i class="ti ti-file-plus"></i></div>
+            <span class="sc-badge sc-badge-new">Hoje</span>
+          </div>
           <div class="sc-val" id="dash-hoje">0</div>
-          <div class="sc-sub sc-sub">Novos hoje</div>
+          <div class="sc-label">Cadastros hoje</div>
+          <div class="sc-sub">Novos hoje</div>
         </div>
         <div class="stat-card">
-          <div class="sc-label">Meta do mês</div>
+          <div class="sc-top">
+            <div class="sc-icon sc-icon-orange"><i class="ti ti-target"></i></div>
+            <span class="sc-badge sc-badge-warn"><i class="ti ti-target"></i> Meta</span>
+          </div>
           <div class="sc-val">30</div>
-          <div class="sc-sub warn"><i class="ti ti-target"></i> Definida pelo gestor</div>
+          <div class="sc-label">Meta do mês</div>
+          <div class="sc-sub sc-warn">Definida pelo gestor</div>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-title"><i class="ti ti-clock"></i> Cadastros recentes</div>
-        <table class="recent-table">
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>CPF</th>
-              <th>Plano</th>
-              <th>Data</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyRecentes">
-            <tr><td colspan="5" style="text-align:center;padding:20px;color:var(--txt-muted)">Nenhum cadastro ainda.</td></tr>
-          </tbody>
-        </table>
+      <!-- Charts Row -->
+      <div class="dash-charts-row">
+        <div class="card dash-chart-main">
+          <div class="card-title-row">
+            <span class="card-title-text"><i class="ti ti-chart-line"></i> Cadastros nos últimos 7 dias</span>
+            <span class="dash-badge-period">Últimos 7 dias</span>
+          </div>
+          <canvas id="chartCadastros" height="120"></canvas>
+        </div>
+        <div class="card dash-chart-side">
+          <div class="card-title-row">
+            <span class="card-title-text"><i class="ti ti-target"></i> Meta do mês</span>
+          </div>
+          <div class="donut-wrap">
+            <canvas id="chartMeta" width="160" height="160"></canvas>
+            <div class="donut-center">
+              <div class="donut-val">30</div>
+              <div class="donut-lbl">meta</div>
+            </div>
+          </div>
+          <div class="donut-info" id="dash-meta-info">
+            <div class="donut-pct" id="dash-meta-pct">0 (0%)</div>
+            <div class="donut-sub">alcançado</div>
+          </div>
+          <a class="dash-link-meta" href="#" onclick="navigate('clientes');return false;">Ver detalhes da meta →</a>
+        </div>
       </div>
+
+      <!-- Bottom Row -->
+      <div class="dash-bottom-row">
+
+        <!-- Recentes -->
+        <div class="card dash-recentes-card">
+          <div class="card-title-row">
+            <span class="card-title-text"><i class="ti ti-clock"></i> Cadastros recentes</span>
+            <a class="dash-ver-todos" href="#" onclick="navigate('clientes');return false;">Ver Todos</a>
+          </div>
+          <div id="listaRecentes">
+            <div class="dash-empty">Nenhum cadastro ainda.</div>
+          </div>
+        </div>
+
+        <!-- Atividades -->
+        <div class="card dash-atividades-card">
+          <div class="card-title-row">
+            <span class="card-title-text"><i class="ti ti-bolt"></i> Atividades recentes</span>
+          </div>
+          <div class="timeline" id="dashTimeline">
+            <div class="dash-empty">Sem atividades.</div>
+          </div>
+          <a class="dash-link-meta" href="#" onclick="navigate('clientes');return false;">Ver todas as atividades →</a>
+        </div>
+
+      </div>
+
+      <div class="dash-footer">
+        <i class="ti ti-shield-check"></i> Sistema seguro e protegido &nbsp;·&nbsp; © 2026 Inforwnet Telecom. Todos os direitos reservados.
+      </div>
+
     </div>
 
     <!-- ── CADASTRAR CLIENTE ── -->
@@ -546,6 +610,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="app.js"></script>
 <script>
   if ('serviceWorker' in navigator) {
