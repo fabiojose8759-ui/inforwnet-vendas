@@ -1,3 +1,134 @@
+/* ── SPLASH SCREEN ── */
+#appSplash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #0d1117;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity .45s ease, visibility .45s ease;
+}
+
+#appSplash.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+#splashCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.splash-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+.splash-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: splash-float 3s ease-in-out infinite;
+}
+
+@keyframes splash-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+
+.splash-icon-glow { display: none; }
+
+.splash-icon-card {
+  position: relative;
+  z-index: 1;
+  width: 180px;
+  height: 180px;
+  border-radius: 40px;
+  background: linear-gradient(145deg, #1e2433, #12161f);
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.7),
+    0 32px 64px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    inset 0 -1px 0 rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transform: perspective(600px) rotateX(4deg);
+}
+
+.splash-icon-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  border-radius: 40px 40px 0 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, transparent 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.splash-logo-img {
+  width: 155px;
+  height: 155px;
+  object-fit: cover;
+  border-radius: 28px;
+  display: block;
+  position: relative;
+  z-index: 1;
+}
+
+.splash-bar-wrap {
+  width: 200px;
+}
+
+.splash-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.splash-progress {
+  height: 100%;
+  width: 38%;
+  background: linear-gradient(90deg, #991b1b, #dc2626, #f87171);
+  border-radius: 99px;
+  animation: splash-slide 1.1s ease-in-out infinite;
+}
+
+@keyframes splash-slide {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(430%); }
+}
+
+.splash-texts { text-align: center; }
+
+.splash-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  font-family: 'Inter', sans-serif;
+}
+
+.splash-sub {
+  font-size: 13px;
+  color: rgba(255,255,255,0.38);
+  margin-top: 6px;
+  font-family: 'Inter', sans-serif;
+}
+
 /* =============================================
    INFORWNET VENDAS — style.css
    ============================================= */
@@ -746,6 +877,12 @@ body.role-admin .admin-only {
   padding: 2px 0;
 }
 
+.act-primary, .act-secondary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 /* ── EDIT MODAL ── */
 .edit-modal-overlay {
   position: fixed;
@@ -1349,8 +1486,8 @@ body.role-admin .admin-only {
 
   /* ── BOTÕES DE AÇÃO MOBILE ── */
   .recent-table td.table-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 8px;
     padding: 12px 0 2px;
     border-top: 1px solid var(--border);
@@ -1359,6 +1496,24 @@ body.role-admin .admin-only {
   }
 
   .recent-table td.table-actions::before { content: none; }
+
+  .act-primary {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .act-secondary {
+    display: none;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .act-secondary.show {
+    display: grid;
+  }
 
   .btn-action {
     width: 100%;
@@ -1378,18 +1533,17 @@ body.role-admin .admin-only {
     letter-spacing: .02em;
   }
 
-  /* Excluir ocupa linha inteira (último = perigo) */
-  .btn-action-delete {
+  /* Excluir ocupa linha inteira */
+  .act-secondary .btn-action-delete {
     grid-column: 1 / -1;
     height: 46px;
     flex-direction: row;
     gap: 8px;
   }
 
-  .btn-action-delete i { font-size: 18px; }
-  .btn-action-delete .btn-lbl { font-size: 13px; }
+  .act-secondary .btn-action-delete i { font-size: 18px; }
+  .act-secondary .btn-action-delete .btn-lbl { font-size: 13px; }
 
-  /* evita .btn herdar width 100% conflitando com grid */
   .recent-table td.table-actions .btn-action {
     width: 100%;
   }
