@@ -71,6 +71,7 @@ const planMenu = document.getElementById('planMenu');
 // ── TEMA ──
 function applyTheme(t) {
   document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('inforwnet-theme', t);
   if (t === 'dark') {
     themeIcon.className = 'ti ti-sun';
     themeLabel.textContent = 'Claro';
@@ -85,7 +86,7 @@ themeBtn.addEventListener('click', () => {
   applyTheme(current === 'dark' ? 'light' : 'dark');
 });
 
-applyTheme('light');
+applyTheme(localStorage.getItem('inforwnet-theme') || 'light');
 
 // ── AUTENTICAÇÃO ──
 function setAuthMode(mode) {
@@ -151,6 +152,13 @@ btnLogout.addEventListener('click', async () => {
   await auth.signOut();
 });
 
+
+
+function hideSplash() {
+  const s = document.getElementById('appSplash');
+  if (s) s.classList.add('hidden');
+}
+
 function startAuthListener() {
   document.body.classList.add('auth-active');
 
@@ -175,6 +183,7 @@ function startAuthListener() {
     if (btnRegister) btnRegister.disabled = false;
 
     if (!user) {
+      hideSplash();
       document.body.classList.add('auth-active');
       document.body.classList.remove('role-admin');
       renderClientes();
@@ -187,6 +196,7 @@ function startAuthListener() {
     document.body.classList.remove('auth-active');
     document.body.classList.toggle('role-admin', isAdmin());
     navigate('dashboard');
+    hideSplash();
     listenClientes();
     if (isAdmin()) listenUsuarios();
   });
@@ -546,21 +556,25 @@ function renderClientes() {
         </span>
       </td>
       <td class="table-actions">
-        <button class="btn btn-action btn-action-confirm" type="button" title="Ativar/Pendente" onclick="ativarCliente('${c.id}')">
-          <i class="ti ti-circle-check"></i><span class="btn-lbl">Confirmar</span>
-        </button>
-        <button class="btn btn-action btn-action-edit" type="button" title="Editar cliente" onclick="editarCliente('${c.id}')">
-          <i class="ti ti-edit"></i><span class="btn-lbl">Editar</span>
-        </button>
-        <button class="btn btn-action btn-action-whatsapp" type="button" title="Exportar para WhatsApp" onclick="exportarClienteWhatsApp('${c.id}')">
-          <i class="ti ti-brand-whatsapp"></i><span class="btn-lbl">WhatsApp</span>
-        </button>
-        <button class="btn btn-action btn-action-copy" type="button" title="Copiar texto" onclick="copiarClienteTexto('${c.id}')">
-          <i class="ti ti-copy"></i><span class="btn-lbl">Copiar</span>
-        </button>
-        <button class="btn btn-action btn-action-delete" type="button" title="Excluir cliente" onclick="removerCliente('${c.id}')">
-          <i class="ti ti-trash"></i><span class="btn-lbl">Excluir</span>
-        </button>
+        <div class="act-primary">
+          <button class="btn btn-action btn-action-whatsapp" type="button" title="Exportar para WhatsApp" onclick="exportarClienteWhatsApp('${c.id}')">
+            <i class="ti ti-brand-whatsapp"></i><span class="btn-lbl">WhatsApp</span>
+          </button>
+          <button class="btn btn-action btn-action-edit" type="button" title="Editar cliente" onclick="editarOuExpandir('${c.id}', this)">
+            <i class="ti ti-edit"></i><span class="btn-lbl">Editar</span>
+          </button>
+          <button class="btn btn-action btn-action-copy" type="button" title="Copiar texto" onclick="copiarClienteTexto('${c.id}')">
+            <i class="ti ti-copy"></i><span class="btn-lbl">Copiar</span>
+          </button>
+        </div>
+        <div class="act-secondary" id="act-extra-${c.id}">
+          <button class="btn btn-action btn-action-confirm" type="button" title="Ativar/Pendente" onclick="ativarCliente('${c.id}')">
+            <i class="ti ti-circle-check"></i><span class="btn-lbl">Confirmar</span>
+          </button>
+          <button class="btn btn-action btn-action-delete" type="button" title="Excluir cliente" onclick="removerCliente('${c.id}')">
+            <i class="ti ti-trash"></i><span class="btn-lbl">Excluir</span>
+          </button>
+        </div>
       </td>
     </tr>
   `).join('');
@@ -808,6 +822,27 @@ window.exportarClienteWhatsApp = function(id) {
   const cliente = clientesCache.find((c) => c.id === id);
   if (!cliente) return;
   window.open(`https://wa.me/?text=${encodeURIComponent(formatClienteText(cliente))}`, '_blank', 'noopener,noreferrer');
+};
+
+
+window.editarOuExpandir = function(id, btn) {
+  // Desktop: abre o modal direto
+  if (window.innerWidth > 600) {
+    editarCliente(id);
+    return;
+  }
+  // Mobile: primeira vez expande, segunda vez abre o modal
+  const extra = document.getElementById('act-extra-' + id);
+  if (!extra) return;
+  const isOpen = extra.classList.contains('show');
+  if (isOpen) {
+    editarCliente(id);
+  } else {
+    extra.classList.add('show');
+    if (btn) {
+      btn.querySelector('.btn-lbl').textContent = 'Editar ✓';
+    }
+  }
 };
 
 window.copiarClienteTexto = async function(id) {
