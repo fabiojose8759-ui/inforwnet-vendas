@@ -21,11 +21,71 @@
 
   <!-- SPLASH — cobre a tela enquanto o Firebase resolve a sessão -->
   <div id="appSplash">
+    <!-- Fundo animado -->
+    <canvas id="splashCanvas"></canvas>
+  <script>
+    (function () {
+      const canvas = document.getElementById('splashCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      window.addEventListener('resize', () => {
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+      });
+      const TOTAL = 60;
+      const particles = Array.from({ length: TOTAL }, () => ({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        r: Math.random() * 1.4 + 0.2,
+        speed: Math.random() * 0.35 + 0.08,
+        angle: Math.random() * Math.PI * 2,
+        drift: (Math.random() - 0.5) * 0.006,
+        alpha: Math.random() * 0.4 + 0.08,
+        pulse: Math.random() * Math.PI * 2,
+      }));
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+          p.pulse += 0.018;
+          const a = p.alpha * (0.7 + 0.3 * Math.sin(p.pulse));
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255,255,255,' + a + ')';
+          ctx.fill();
+          p.angle += p.drift;
+          p.x += Math.cos(p.angle) * p.speed;
+          p.y -= p.speed * 0.3;
+          if (p.y < -10 || p.x < -10 || p.x > canvas.width + 10) {
+            p.x = Math.random() * canvas.width;
+            p.y = canvas.height + 10;
+          }
+        });
+        if (!document.getElementById('appSplash').classList.contains('hidden')) {
+          requestAnimationFrame(draw);
+        }
+      }
+      draw();
+    })();
+  </script>
     <div class="splash-inner">
-      <div class="splash-logo">
-        <img src="logo de carregamento.png" alt="Inforwnet Telecom" class="splash-logo-img">
+
+      <div class="splash-icon-wrap">
+        <div class="splash-icon-glow"></div>
+        <div class="splash-icon-card">
+          <img src="./logo-de-carregamento.png" alt="Inforwnet" class="splash-logo-img">
+        </div>
       </div>
-      <div class="splash-bar"><div class="splash-progress"></div></div>
+
+      <div class="splash-bar-wrap">
+        <div class="splash-bar"><div class="splash-progress"></div></div>
+      </div>
+
+      <div class="splash-texts">
+        <div class="splash-title">Carregando...</div>
+        <div class="splash-sub">Aprimorando sua experiência Inforwnet</div>
+      </div>
+
     </div>
   </div>
 
