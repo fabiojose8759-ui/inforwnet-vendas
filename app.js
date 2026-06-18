@@ -581,17 +581,14 @@ function renderClientes() {
           <button class="btn btn-action btn-action-whatsapp" type="button" title="Exportar para WhatsApp" onclick="exportarClienteWhatsApp('${c.id}')">
             <i class="ti ti-brand-whatsapp"></i><span class="btn-lbl">WhatsApp</span>
           </button>
-          <button class="btn btn-action btn-action-edit" type="button" title="Editar cliente" onclick="editarOuExpandir('${c.id}', this)">
+          <button class="btn btn-action btn-action-edit" type="button" title="Editar cliente" onclick="editarCliente('${c.id}')">
             <i class="ti ti-edit"></i><span class="btn-lbl">Editar</span>
           </button>
           <button class="btn btn-action btn-action-copy" type="button" title="Copiar texto" onclick="copiarClienteTexto('${c.id}')">
             <i class="ti ti-copy"></i><span class="btn-lbl">Copiar</span>
           </button>
         </div>
-        <div class="act-secondary" id="act-extra-${c.id}">
-          <button class="btn btn-action btn-action-confirm" type="button" title="Ativar/Pendente" onclick="ativarCliente('${c.id}')">
-            <i class="ti ti-circle-check"></i><span class="btn-lbl">Confirmar</span>
-          </button>
+        <div class="act-secondary">
           <button class="btn btn-action btn-action-delete" type="button" title="Excluir cliente" onclick="removerCliente('${c.id}')">
             <i class="ti ti-trash"></i><span class="btn-lbl">Excluir</span>
           </button>
@@ -742,10 +739,18 @@ window.editarCliente = function(id) {
 
             <div class="form-group">
               <label>Status:</label>
+              ${isAdmin() ? `
               <div class="input-wrap">
                 <span class="inp-icon"><i class="ti ti-award"></i></span>
                 <select id="editStatus">${sel('status', cliente.status)}</select>
               </div>
+              ` : `
+              <div class="input-wrap" style="padding:10px 12px;">
+                <span class="inp-icon"><i class="ti ti-award"></i></span>
+                <span class="pill ${cliente.status === 'Ativo' ? 'pill-green' : 'pill-amber'}">${escapeHtml(cliente.status || 'Pendente')}</span>
+                <span id="editStatusReadonly" data-value="${escapeHtml(cliente.status || 'Pendente')}" style="display:none;"></span>
+              </div>
+              `}
             </div>
 
             <div class="form-group col3">
@@ -801,7 +806,8 @@ window.salvarEdicao = async function(id) {
   const pgto = document.getElementById('editPgto').value;
   const valorInstalacao = document.getElementById('editValorInstalacao').value.trim();
   const parcelas = document.getElementById('editParcelas').value;
-  const status = document.getElementById('editStatus').value;
+  const statusEl = document.getElementById('editStatus');
+  const status = statusEl ? statusEl.value : document.getElementById('editStatusReadonly').dataset.value;
   const obs = document.getElementById('editObs').value.trim();
 
   if (nome.length < 3) return showToast('Nome inválido. Mínimo 3 caracteres.', 'ti-alert-circle', true);
@@ -811,12 +817,15 @@ window.salvarEdicao = async function(id) {
   const tel1Digits = onlyDigits(tel1);
   if (tel1Digits.length < 10 || tel1Digits.length > 11) return showToast('Telefone 01 inválido.', 'ti-alert-circle', true);
 
+  const payload = {
+    nome, cpf, rg, email, endereco, plano, tel1, tel2,
+    vencimento, pgto, valorInstalacao, parcelas, obs,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  if (isAdmin()) payload.status = status;
+
   try {
-    await db.collection('clientes').doc(id).update({
-      nome, cpf, rg, email, endereco, plano, tel1, tel2,
-      vencimento, pgto, valorInstalacao, parcelas, status, obs,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    await db.collection('clientes').doc(id).update(payload);
     document.getElementById('editModal').remove();
     showToast('Cliente atualizado com sucesso!', 'ti-check');
   } catch (err) {
@@ -836,25 +845,32 @@ function splitPlano(plano) {
 }
 
 function formatClienteText(cliente) {
-  const field = (label, value) => `${label}: ${value || '-'}`;
+  const upper = (value) => (value || '-').toString().toUpperCase();
+  const field = (label, value) => `${label}: ${upper(value)}`;
   const { nome: planoNome, valor: planoValor } = splitPlano(cliente.plano);
-  return [
+  const linhas = [
     '📋 DADOS DO CLIENTE',
     field('NOME', cliente.nome),
     field('CPF', cliente.cpf),
     field('RG', cliente.rg),
+    '',
     field('📍 ENDEREÇO', cliente.endereco),
     field('🛜 PLANO CONTRATADO', planoNome),
     field('💰VALOR DO PLANO', planoValor),
+    '',
     field('📅 DIA DE VENCIMENTO', cliente.vencimento ? `Dia ${cliente.vencimento}` : ''),
     field('📞 TELEFONE 01', cliente.tel1),
     field('📞 TELEFONE 02', cliente.tel2),
-    field('📧 EMAIL', cliente.email),
+    `📧 EMAIL: ${(cliente.email || '-').toLowerCase()}`,
+    '',
     field('💳 FORMA DE PAGAMENTO', cliente.pgto),
-    field('VALOR', cliente.valorInstalacao),
+    `💰VALOR: R$ ${upper(cliente.valorInstalacao)}`,
     field('PARCELAMENTO', cliente.parcelas),
-    field('OBSERVAÇÕES', cliente.obs)
-  ].join('\n\n');
+    field('OBSERVAÇÕES', cliente.obs),
+    '',
+    field('VENDEDOR', cliente.userNome)
+  ];
+  return linhas.join('\n');
 }
 
 window.exportarClienteWhatsApp = function(id) {
@@ -863,26 +879,6 @@ window.exportarClienteWhatsApp = function(id) {
   window.open(`https://wa.me/?text=${encodeURIComponent(formatClienteText(cliente))}`, '_blank', 'noopener,noreferrer');
 };
 
-
-window.editarOuExpandir = function(id, btn) {
-  // Desktop: abre o modal direto
-  if (window.innerWidth > 600) {
-    editarCliente(id);
-    return;
-  }
-  // Mobile: primeira vez expande, segunda vez abre o modal
-  const extra = document.getElementById('act-extra-' + id);
-  if (!extra) return;
-  const isOpen = extra.classList.contains('show');
-  if (isOpen) {
-    editarCliente(id);
-  } else {
-    extra.classList.add('show');
-    if (btn) {
-      btn.querySelector('.btn-lbl').textContent = 'Editar ✓';
-    }
-  }
-};
 
 window.copiarClienteTexto = async function(id) {
   const cliente = clientesCache.find((c) => c.id === id);
@@ -905,19 +901,6 @@ window.copiarClienteTexto = async function(id) {
   }
 };
 
-window.ativarCliente = async function(id) {
-  const cliente = clientesCache.find((c) => c.id === id);
-  if (!cliente || !canAccessOwner(cliente.userId)) return showToast('Sem permissão para alterar este cliente.', 'ti-alert-circle', true);
-  try {
-    await db.collection('clientes').doc(id).update({
-      status: cliente.status === 'Ativo' ? 'Pendente' : 'Ativo',
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    showToast('Status atualizado!', 'ti-check');
-  } catch (error) {
-    showToast('Erro ao atualizar status.', 'ti-alert-circle', true);
-  }
-};
 
 window.removerCliente = async function(id) {
   const cliente = clientesCache.find((c) => c.id === id);
