@@ -89,6 +89,19 @@ themeBtn.addEventListener('click', () => {
 applyTheme(localStorage.getItem('inforwnet-theme') || 'light');
 
 // ── AUTENTICAÇÃO ──
+function showAuthError(msg) {
+  const box = document.getElementById('authError');
+  const msgEl = document.getElementById('authErrorMsg');
+  if (!box || !msgEl) return;
+  msgEl.textContent = msg;
+  box.classList.add('show');
+}
+
+function hideAuthError() {
+  const box = document.getElementById('authError');
+  if (box) box.classList.remove('show');
+}
+
 function setAuthMode(mode) {
   const isLogin = mode === 'login';
   tabLogin.classList.toggle('active', isLogin);
@@ -97,35 +110,43 @@ function setAuthMode(mode) {
   registerForm.classList.toggle('active', !isLogin);
   const successEl = document.getElementById('registerSuccess');
   if (successEl) successEl.classList.remove('show');
+  hideAuthError();
 }
 
 tabLogin.addEventListener('click', () => setAuthMode('login'));
 tabRegister.addEventListener('click', () => setAuthMode('register'));
 
+['loginEmail', 'loginSenha'].forEach((id) => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', hideAuthError);
+});
+
 btnLogin.addEventListener('click', async () => {
+  hideAuthError();
   if (!ensureFirebaseReady()) return;
   const email = document.getElementById('loginEmail').value.trim();
   const senha = document.getElementById('loginSenha').value;
-  if (!email || !senha) return showToast('Informe email e senha.', 'ti-alert-circle', true);
+  if (!email || !senha) return showAuthError('Informe email e senha.');
 
   btnLogin.disabled = true;
   try {
     await auth.signInWithEmailAndPassword(email, senha);
   } catch (error) {
-    showToast(getAuthErrorMessage(error), 'ti-alert-circle', true);
+    showAuthError(getAuthErrorMessage(error));
     btnLogin.disabled = false;
   }
 });
 
 btnRegister.addEventListener('click', async () => {
+  hideAuthError();
   if (!ensureFirebaseReady()) return;
   const nome = document.getElementById('registerNome').value.trim();
   const email = document.getElementById('registerEmail').value.trim();
   const senha = document.getElementById('registerSenha').value;
 
-  if (nome.length < 3) return showToast('Informe o nome completo.', 'ti-alert-circle', true);
-  if (!isValidEmail(email)) return showToast('Informe um email válido.', 'ti-alert-circle', true);
-  if (senha.length < 6) return showToast('A senha deve ter pelo menos 6 caracteres.', 'ti-alert-circle', true);
+  if (nome.length < 3) return showAuthError('Informe o nome completo.');
+  if (!isValidEmail(email)) return showAuthError('Informe um email válido.');
+  if (senha.length < 6) return showAuthError('A senha deve ter pelo menos 6 caracteres.');
 
   btnRegister.disabled = true;
   try {
@@ -141,7 +162,7 @@ btnRegister.addEventListener('click', async () => {
     document.getElementById('registerSenha').value = '';
     document.getElementById('registerSuccess').classList.add('show');
   } catch (error) {
-    showToast(getAuthErrorMessage(error), 'ti-alert-circle', true);
+    showAuthError(getAuthErrorMessage(error));
   } finally {
     btnRegister.disabled = false;
   }
@@ -242,10 +263,10 @@ function getAuthErrorMessage(error) {
   const messages = {
     'auth/email-already-in-use': 'Este email já está cadastrado.',
     'auth/invalid-email': 'Email inválido.',
-    'auth/invalid-login-credentials': 'Email ou senha inválidos.',
-    'auth/invalid-credential': 'Email ou senha inválidos.',
-    'auth/user-not-found': 'Usuário não encontrado.',
-    'auth/wrong-password': 'Senha incorreta.',
+    'auth/invalid-login-credentials': 'Email ou senha incorretos.',
+    'auth/invalid-credential': 'Email ou senha incorretos.',
+    'auth/user-not-found': 'Email ou senha incorretos.',
+    'auth/wrong-password': 'Email ou senha incorretos.',
     'auth/weak-password': 'Senha fraca. Use pelo menos 6 caracteres.',
     'auth/too-many-requests': 'Muitas tentativas. Aguarde alguns minutos.',
     'auth/network-request-failed': 'Falha de conexão. Verifique sua internet.',
@@ -803,19 +824,37 @@ window.salvarEdicao = async function(id) {
   }
 };
 
+function splitPlano(plano) {
+  // Campo "plano" guarda nome + valor juntos (ex: "600 Mega – R$ 119,99/mês").
+  // Tenta separar pelo travessão para preencher "Plano contratado" e "Valor do plano" isoladamente.
+  if (!plano) return { nome: '', valor: '' };
+  const partes = plano.split(/\s*[–-]\s*/);
+  if (partes.length >= 2) {
+    return { nome: partes[0].trim(), valor: partes.slice(1).join(' - ').trim() };
+  }
+  return { nome: plano.trim(), valor: '' };
+}
+
 function formatClienteText(cliente) {
   const field = (label, value) => `${label}: ${value || '-'}`;
+  const { nome: planoNome, valor: planoValor } = splitPlano(cliente.plano);
   return [
-    '*Cadastro de Cliente - Inforwnet*', '',
-    field('Nome', cliente.nome), field('CPF', cliente.cpf), field('RG', cliente.rg),
-    field('Email', cliente.email), field('Endereço', cliente.endereco),
-    field('Plano', cliente.plano), field('Vencimento', cliente.vencimento ? `Dia ${cliente.vencimento}` : ''),
-    field('Telefone 01', cliente.tel1), field('Telefone 02', cliente.tel2),
-    field('Forma de pagamento', cliente.pgto), field('Valor da instalação', cliente.valorInstalacao),
-    field('Parcelamento', cliente.parcelas), field('Observações', cliente.obs),
-    field('Data do cadastro', cliente.data), field('Status', cliente.status),
-    field('Vendedor', cliente.userNome)
-  ].join('\n');
+    '📋 DADOS DO CLIENTE',
+    field('NOME', cliente.nome),
+    field('CPF', cliente.cpf),
+    field('RG', cliente.rg),
+    field('📍 ENDEREÇO', cliente.endereco),
+    field('🛜 PLANO CONTRATADO', planoNome),
+    field('💰VALOR DO PLANO', planoValor),
+    field('📅 DIA DE VENCIMENTO', cliente.vencimento ? `Dia ${cliente.vencimento}` : ''),
+    field('📞 TELEFONE 01', cliente.tel1),
+    field('📞 TELEFONE 02', cliente.tel2),
+    field('📧 EMAIL', cliente.email),
+    field('💳 FORMA DE PAGAMENTO', cliente.pgto),
+    field('VALOR', cliente.valorInstalacao),
+    field('PARCELAMENTO', cliente.parcelas),
+    field('OBSERVAÇÕES', cliente.obs)
+  ].join('\n\n');
 }
 
 window.exportarClienteWhatsApp = function(id) {
