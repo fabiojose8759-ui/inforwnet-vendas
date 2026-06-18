@@ -270,6 +270,23 @@ body.auth-active .sidebar-overlay {
   margin-bottom: 18px;
 }
 
+.auth-error {
+  display: none;
+  align-items: flex-start;
+  gap: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  margin: -8px 0 18px;
+}
+
+.auth-error.show { display: flex; }
+.auth-error i { font-size: 16px; margin-top: 1px; flex-shrink: 0; }
+
 .auth-tab {
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -1353,7 +1370,7 @@ body.role-admin .admin-only {
   background: #111827; color: #fff;
   padding: 12px 18px; border-radius: 10px;
   font-size: 13px; display: flex; align-items: center; gap: 8px;
-  z-index: 999; opacity: 0;
+  z-index: 10000; opacity: 0;
   transform: translateY(8px);
   transition: opacity .25s, transform .25s;
   pointer-events: none;
