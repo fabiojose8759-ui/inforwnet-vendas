@@ -916,6 +916,20 @@ body.role-admin .admin-only {
 
 .btn-danger-outline:hover { background: #fef2f2; }
 
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+.btn:disabled {
+  opacity: .65;
+  cursor: not-allowed;
+}
+
 /* ── CELL ICON (oculto no desktop, visível no mobile) ── */
 .cell-icon, .cell-lbl { display: none; }
 .cell-val { display: inline; }
@@ -1036,6 +1050,45 @@ body.role-admin .admin-only {
   gap: 10px;
   padding: 14px 20px;
   border-top: 1px solid var(--border);
+}
+
+.delete-confirm-card {
+  width: min(100%, 430px);
+}
+
+.delete-confirm-header {
+  color: var(--danger);
+}
+
+.delete-confirm-body {
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.delete-confirm-icon {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: var(--danger);
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.delete-confirm-body strong {
+  display: block;
+  color: var(--txt-primary);
+  font-size: 15px;
+  margin-bottom: 5px;
+}
+
+.delete-confirm-body p {
+  color: var(--txt-secondary);
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .btn-primary {
