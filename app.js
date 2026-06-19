@@ -20,10 +20,8 @@ let currentUser = null;
 let currentProfile = null;
 let unsubscribeClientes = null;
 let unsubscribeUsuarios = null;
-let unsubscribeNotificacoes = null;
 let clientesCache = [];
 let usuariosCache = [];
-let notificacoesCache = [];
 
 if (isFirebaseConfigured && window.firebase) {
   firebase.initializeApp(firebaseConfig);
@@ -196,14 +194,11 @@ function startAuthListener() {
   auth.onAuthStateChanged(async (user) => {
     if (unsubscribeClientes) unsubscribeClientes();
     if (unsubscribeUsuarios) unsubscribeUsuarios();
-    if (unsubscribeNotificacoes) unsubscribeNotificacoes();
 
     currentUser = user;
     currentProfile = null;
     clientesCache = [];
     usuariosCache = [];
-    notificacoesCache = [];
-    renderNotificacoes();
 
     if (btnLogin) btnLogin.disabled = false;
     if (btnRegister) btnRegister.disabled = false;
@@ -224,7 +219,6 @@ function startAuthListener() {
     navigate('dashboard');
     hideSplash();
     listenClientes();
-    listenNotificacoes();
     if (isAdmin()) listenUsuarios();
   });
 }
@@ -534,103 +528,6 @@ function listenClientes() {
   });
 }
 
-// ── NOTIFICAÇÕES ──
-function listenNotificacoes() {
-  if (!db || !currentUser) return;
-
-  unsubscribeNotificacoes = db.collection('notificacoes')
-    .where('userId', '==', currentUser.uid)
-    .onSnapshot((snapshot) => {
-      notificacoesCache = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      notificacoesCache.sort((a, b) => (b.createdAtMs || 0) - (a.createdAtMs || 0));
-      renderNotificacoes();
-    }, () => {
-      // Notificações são um complemento; uma falha aqui não deve travar o app.
-    });
-}
-
-function timeAgo(ms) {
-  if (!ms) return '';
-  const diff = Math.max(0, Date.now() - ms);
-  const min = Math.floor(diff / 60000);
-  if (min < 1) return 'agora mesmo';
-  if (min < 60) return `há ${min} min`;
-  const h = Math.floor(min / 60);
-  if (h < 24) return `há ${h}h`;
-  const d = Math.floor(h / 24);
-  if (d < 30) return `há ${d}d`;
-  return new Date(ms).toLocaleDateString('pt-BR');
-}
-
-function renderNotificacoes() {
-  const badge = document.getElementById('notifBadge');
-  const list = document.getElementById('notifList');
-  const markAllBtn = document.getElementById('notifMarkAll');
-  if (!badge || !list) return;
-
-  const unread = notificacoesCache.filter(n => !n.lida).length;
-  badge.style.display = unread > 0 ? 'flex' : 'none';
-  badge.textContent = unread > 9 ? '9+' : String(unread);
-  if (markAllBtn) markAllBtn.disabled = unread === 0;
-
-  if (!notificacoesCache.length) {
-    list.innerHTML = `<div class="notif-empty"><i class="ti ti-bell-off"></i>Nenhuma notificação por aqui.</div>`;
-    return;
-  }
-
-  list.innerHTML = notificacoesCache.map((n) => `
-    <div class="notif-item ${n.lida ? '' : 'unread'}" onclick="abrirNotificacao('${n.id}')">
-      <div class="notif-icon"><i class="ti ti-circle-check"></i></div>
-      <div class="notif-body">
-        <div class="notif-msg">${escapeHtml(n.mensagem || '')}</div>
-        <div class="notif-time">${timeAgo(n.createdAtMs)}</div>
-      </div>
-      ${n.lida ? '' : '<span class="notif-dot"></span>'}
-    </div>
-  `).join('');
-}
-
-window.abrirNotificacao = async function(id) {
-  const n = notificacoesCache.find((x) => x.id === id);
-  if (n && !n.lida) {
-    try { await db.collection('notificacoes').doc(id).update({ lida: true }); }
-    catch (err) { /* a marcação como lida é melhor-esforço */ }
-  }
-  const panel = document.getElementById('notifPanel');
-  if (panel) panel.classList.remove('open');
-  navigate('clientes');
-};
-
-const notifBtn = document.getElementById('notifBtn');
-const notifPanel = document.getElementById('notifPanel');
-const notifMarkAllBtn = document.getElementById('notifMarkAll');
-
-if (notifBtn && notifPanel) {
-  notifBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    notifPanel.classList.toggle('open');
-  });
-
-  document.addEventListener('click', (e) => {
-    const wrap = document.getElementById('notifWrap');
-    if (wrap && !wrap.contains(e.target)) notifPanel.classList.remove('open');
-  });
-}
-
-if (notifMarkAllBtn) {
-  notifMarkAllBtn.addEventListener('click', async () => {
-    const naoLidas = notificacoesCache.filter((n) => !n.lida);
-    if (!naoLidas.length) return;
-    try {
-      const batch = db.batch();
-      naoLidas.forEach((n) => batch.update(db.collection('notificacoes').doc(n.id), { lida: true }));
-      await batch.commit();
-    } catch (err) {
-      showToast('Erro ao marcar notificações como lidas.', 'ti-alert-circle', true);
-    }
-  });
-}
-
 function renderClientes() {
   const tbody = document.getElementById('tbodyClientes');
   if (!tbody) return;
@@ -687,7 +584,7 @@ function renderClientes() {
           <button class="btn btn-action btn-action-edit" type="button" title="Editar cliente" onclick="editarCliente('${c.id}')">
             <i class="ti ti-edit"></i><span class="btn-lbl">Editar</span>
           </button>
-          <button class="btn btn-action btn-action-copy" type="button" tabindex="-1" title="Copiar texto" onclick="copiarClienteTexto('${c.id}', this)">
+          <button class="btn btn-action btn-action-copy" type="button" title="Copiar texto" onclick="copiarClienteTexto('${c.id}')">
             <i class="ti ti-copy"></i><span class="btn-lbl">Copiar</span>
           </button>
         </div>
@@ -897,7 +794,6 @@ window.editarCliente = function(id) {
 };
 
 window.salvarEdicao = async function(id) {
-  const clienteOriginal = clientesCache.find((c) => c.id === id);
   const nome = document.getElementById('editNome').value.trim();
   const cpf = document.getElementById('editCpf').value.trim();
   const rg = document.getElementById('editRg').value.trim();
@@ -932,25 +828,6 @@ window.salvarEdicao = async function(id) {
     await db.collection('clientes').doc(id).update(payload);
     document.getElementById('editModal').remove();
     showToast('Cliente atualizado com sucesso!', 'ti-check');
-
-    // Instalação acabou de ser confirmada pelo admin → avisa o vendedor responsável
-    const acabouDeAtivar = isAdmin() && status === 'Ativo' && clienteOriginal && clienteOriginal.status !== 'Ativo';
-    if (acabouDeAtivar && clienteOriginal.userId && clienteOriginal.userId !== currentUser.uid) {
-      try {
-        await db.collection('notificacoes').add({
-          userId: clienteOriginal.userId,
-          clienteId: id,
-          clienteNome: nome,
-          tipo: 'instalacao_ativada',
-          mensagem: `A instalação do cliente ${nome} foi confirmada! 🎉`,
-          lida: false,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          createdAtMs: Date.now()
-        });
-      } catch (err) {
-        // Notificar é um extra; não deve interromper o fluxo de edição do cliente.
-      }
-    }
   } catch (err) {
     showToast('Erro ao salvar alterações.', 'ti-alert-circle', true);
   }
@@ -1003,44 +880,24 @@ window.exportarClienteWhatsApp = function(id) {
 };
 
 
-window.copiarClienteTexto = function(id, btn) {
-  if (btn) { btn.blur(); btn.setAttribute('tabindex', '-1'); }
-  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-  document.body.focus();
+window.copiarClienteTexto = async function(id) {
   const cliente = clientesCache.find((c) => c.id === id);
   if (!cliente) return;
   const text = formatClienteText(cliente);
-  const done = function(ok) {
-    setTimeout(function() {
-      if (btn) { btn.blur(); }
-      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-    }, 100);
-    showToast(ok ? 'Texto copiado!' : 'Não foi possível copiar.', ok ? 'ti-copy' : 'ti-alert-circle', !ok);
-  };
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(function() { done(true); }).catch(function() {
-      const area = document.createElement('textarea');
-      area.value = text;
-      area.setAttribute('readonly', '');
-      area.style.cssText = 'position:fixed;left:-9999px;top:-9999px;';
-      document.body.appendChild(area);
-      area.focus();
-      area.select();
-      const copied = document.execCommand('copy');
-      document.body.removeChild(area);
-      done(copied);
-    });
-  } else {
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('Texto copiado!', 'ti-copy');
+  } catch (error) {
     const area = document.createElement('textarea');
     area.value = text;
     area.setAttribute('readonly', '');
-    area.style.cssText = 'position:fixed;left:-9999px;top:-9999px;';
+    area.style.position = 'fixed';
+    area.style.left = '-9999px';
     document.body.appendChild(area);
-    area.focus();
     area.select();
     const copied = document.execCommand('copy');
     document.body.removeChild(area);
-    done(copied);
+    showToast(copied ? 'Texto copiado!' : 'Não foi possível copiar.', copied ? 'ti-copy' : 'ti-alert-circle', !copied);
   }
 };
 
