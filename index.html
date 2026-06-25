@@ -189,11 +189,15 @@
   </div>
 
   <div class="sidebar-user">
-    <div class="avatar">JV</div>
+    <div class="avatar-wrap">
+      <div class="avatar">JV</div>
+    </div>
     <div class="user-info">
       <div class="name">João Vendedor</div>
       <div class="role">Vendedor</div>
+      <div class="user-online">Online</div>
     </div>
+    <i class="ti ti-chevron-down user-chevron"></i>
   </div>
 
   <nav class="sidebar-nav">
@@ -209,21 +213,15 @@
     </a>
 
     <div class="nav-divider"></div>
-    <div class="nav-label">Gestão</div>
-    <a class="nav-item" data-page="pedidos">
-      <i class="ti ti-clipboard-list"></i> Pedidos
-    </a>
-    <a class="nav-item" data-page="instalacoes">
-      <i class="ti ti-tool"></i> Instalações
-    </a>
-    <a class="nav-item admin-only" data-page="financeiro">
-      <i class="ti ti-currency-dollar"></i> Financeiro
-    </a>
     <a class="nav-item" data-page="relatorios">
       <i class="ti ti-chart-bar"></i> Relatórios
     </a>
+    <a class="nav-item admin-only" data-page="meta" id="navItemMeta">
+      <i class="ti ti-target"></i> Meta
+    </a>
 
     <div class="nav-divider"></div>
+    <div class="nav-label">Sistema</div>
     <a class="nav-item" data-page="perfil">
       <i class="ti ti-user-circle"></i> Meu Perfil
     </a>
@@ -253,6 +251,13 @@
     <button class="menu-btn" id="menuBtn" aria-label="Menu">
       <i class="ti ti-menu-2"></i>
     </button>
+    <div class="topbar-search" id="topbarSearchWrap">
+      <i class="ti ti-search"></i>
+      <input type="text" id="topbarSearchInput" placeholder="Buscar cliente, CPF, plano..." autocomplete="off">
+      <button class="topbar-search-clear" type="button" id="topbarSearchClear" title="Limpar busca">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
     <div class="topbar-spacer"></div>
     <div class="topbar-actions">
       <div class="notif-wrap" id="notifWrap">
@@ -272,10 +277,16 @@
         <i class="ti ti-moon" id="themeIcon"></i>
         <span id="themeLabel">Escuro</span>
       </button>
-      <div class="topbar-user">
+      <div class="topbar-user" id="topbar-user-btn" onclick="toggleUserDropdown()">
         <div class="avatar">JV</div>
         <span class="uname">João Vendedor</span>
-        <i class="ti ti-chevron-down"></i>
+        <i class="ti ti-chevron-down" id="topbar-chevron"></i>
+      </div>
+      <div class="user-dropdown" id="user-dropdown">
+        <button class="user-dropdown-item" onclick="fazerLogout()">
+          <i class="ti ti-logout"></i>
+          <span>Sair</span>
+        </button>
       </div>
     </div>
   </header>
@@ -289,8 +300,8 @@
       <!-- Header -->
       <div class="dash-header">
         <div>
-          <div class="ph-title">Dashboard</div>
-          <div class="ph-sub">Resumo geral das suas vendas</div>
+          <div class="ph-title">Olá, <span id="dash-greeting-nome">Vendedor</span>!</div>
+          <div class="ph-sub">Veja o resumo geral do seu sistema</div>
         </div>
         <div class="dash-date">
           <i class="ti ti-calendar"></i>
@@ -327,18 +338,10 @@
           <div class="sc-label">Instalações de hoje</div>
           <div class="sc-sub sc-success">Confirmadas hoje</div>
         </div>
-        <div class="stat-card stat-action" onclick="navigate('clientes')">
-          <div class="sc-top">
-            <div class="sc-icon sc-icon-purple"><i class="ti ti-wifi-off"></i></div>
-            <span class="sc-badge sc-badge-warn">Revisar</span>
-          </div>
-          <div class="sc-val" id="dash-sem-plano">0</div>
-          <div class="sc-label">Cadastros sem plano</div>
-          <div class="sc-sub sc-warn">Precisam completar dados</div>
-        </div>
+
         <div class="stat-card stat-action" onclick="navigate('relatorios')">
           <div class="sc-top">
-            <div class="sc-icon sc-icon-blue"><i class="ti ti-calendar-dollar"></i></div>
+            <div class="sc-icon sc-icon-purple"><i class="ti ti-calendar-dollar"></i></div>
             <span class="sc-badge sc-badge-new">Mês</span>
           </div>
           <div class="sc-val" id="dash-vendas-mes">0</div>
@@ -349,43 +352,58 @@
 
       <!-- Charts Row -->
       <div class="dash-charts-row">
-        <div class="card dash-chart-main">
-          <div class="card-title-row">
-            <span class="card-title-text"><i class="ti ti-chart-line"></i> Cadastros nos últimos 7 dias</span>
-            <span class="dash-badge-period">Últimos 7 dias</span>
-          </div>
-          <canvas id="chartCadastros" height="120"></canvas>
-        </div>
         <div class="card dash-chart-side">
           <div class="card-title-row">
             <span class="card-title-text"><i class="ti ti-target"></i> Meta do mês</span>
-          </div>
-          <div class="donut-wrap">
-            <canvas id="chartMeta" width="160" height="160"></canvas>
-            <div class="donut-center">
-              <div class="donut-val" id="dash-meta-valor">30</div>
-              <div class="donut-lbl">meta</div>
-            </div>
-          </div>
-          <div class="donut-info" id="dash-meta-info">
-            <div class="donut-pct" id="dash-meta-pct">0 (0%)</div>
-            <div class="donut-sub">alcançado</div>
-          </div>
-          <div class="meta-admin-box admin-only">
-            <label for="metaMensalInput">Meta mensal</label>
-            <div class="meta-admin-row">
-              <input type="number" id="metaMensalInput" min="1" max="999" step="1" value="30">
-              <button class="btn btn-primary" type="button" id="btnSalvarMeta" title="Salvar meta">
-                <i class="ti ti-device-floppy"></i>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button class="btn-meta-edit admin-only" id="btnAbrirMeta" title="Editar meta mensal">
+                <i class="ti ti-pencil"></i> Editar meta
               </button>
+              <span class="dash-badge-period" id="dash-meta-pct-badge">0%</span>
             </div>
           </div>
-          <a class="dash-link-meta" href="#" onclick="navigate('clientes');return false;">Ver detalhes da meta →</a>
+
+          <div class="meta-card-body">
+            <div class="meta-left">
+              <div class="meta-numbers">
+                <span class="meta-atual" id="dash-meta-atual">0</span>
+                <span class="meta-sep">/ <span id="dash-meta-valor">30</span> vendas</span>
+              </div>
+
+              <div class="meta-progress-bar">
+                <div class="meta-progress-fill" id="dash-meta-fill" style="width:0%"></div>
+              </div>
+
+              <div class="meta-faltam">Faltam <span class="meta-faltam-num" id="dash-meta-faltam">30</span> vendas para atingir a meta</div>
+            </div>
+
+            <div class="meta-right">
+              <div class="meta-stats-row">
+                <div class="meta-stat-box">
+                  <div class="meta-stat-icon meta-stat-icon-green"><i class="ti ti-trending-up"></i></div>
+                  <div class="meta-stat-info">
+                    <div class="meta-stat-label">Projeção para o mês</div>
+                    <div class="meta-stat-val green" id="dash-meta-projecao">0 vendas</div>
+                    <div class="meta-stat-sub">Se mantiver o ritmo atual</div>
+                  </div>
+                </div>
+                <div class="meta-stat-divider"></div>
+                <div class="meta-stat-box">
+                  <div class="meta-stat-icon meta-stat-icon-blue"><i class="ti ti-calendar"></i></div>
+                  <div class="meta-stat-info">
+                    <div class="meta-stat-label">Dias restantes</div>
+                    <div class="meta-stat-val blue" id="dash-meta-dias">0 dias</div>
+                    <div class="meta-stat-sub">Até o final do mês</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- Bottom Row -->
-      <div class="dash-bottom-row">
+      <div class="dash-bottom-row dash-row-single">
 
         <!-- Recentes -->
         <div class="card dash-recentes-card">
@@ -393,10 +411,36 @@
             <span class="card-title-text"><i class="ti ti-clock"></i> Cadastros recentes</span>
             <a class="dash-ver-todos" href="#" onclick="navigate('clientes');return false;">Ver Todos</a>
           </div>
-          <div id="listaRecentes">
+
+          <div class="recentes-table-wrap">
+            <table class="recentes-table">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Plano</th>
+                  <th>Telefone</th>
+                  <th>Status</th>
+                  <th>Data</th>
+                  <th class="th-acoes">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="listaRecentes">
+                <tr><td colspan="6" class="dash-empty-cell">Nenhum cadastro ainda.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="recentes-mobile-list" id="listaRecentesMobile">
             <div class="dash-empty">Nenhum cadastro ainda.</div>
           </div>
+
+          <div class="recentes-footer" id="recentesFooter"></div>
         </div>
+
+      </div>
+
+      <!-- Bottom Row 2 -->
+      <div class="dash-bottom-row dash-row-single">
 
         <!-- Atividades -->
         <div class="card dash-atividades-card">
@@ -410,6 +454,7 @@
         </div>
 
       </div>
+
 
       <div class="dash-footer">
         <i class="ti ti-shield-check"></i> Sistema seguro e protegido &nbsp;·&nbsp; © 2026 Inforwnet Telecom. Todos os direitos reservados.
@@ -470,6 +515,14 @@
               <div class="input-wrap">
                 <span class="inp-icon"><i class="ti ti-map-pin"></i></span>
                 <input type="text" id="endereco" placeholder="Digite o endereço completo" maxlength="120" autocomplete="street-address">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Bairro:</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-map-2"></i></span>
+                <input type="text" id="bairro" placeholder="Digite o bairro" maxlength="80" autocomplete="address-level3">
               </div>
             </div>
 
@@ -712,12 +765,68 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="app.js"></script>
 <script>
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js');
   }
 </script>
+<!-- Modal: Editar Meta Mensal -->
+<div class="modal-overlay" id="modalMetaOverlay">
+  <div class="modal-box modal-meta">
+    <div class="modal-meta-header">
+      <div class="modal-meta-icon"><i class="ti ti-target"></i></div>
+      <div>
+        <div class="modal-meta-title">Metas de Vendas</div>
+        <div class="modal-meta-sub">Configure metas globais ou individuais por vendedor</div>
+      </div>
+      <button class="modal-meta-close" id="btnFecharMeta" title="Fechar"><i class="ti ti-x"></i></button>
+    </div>
+
+    <!-- Abas de modo -->
+    <div class="meta-mode-tabs">
+      <button type="button" class="meta-mode-tab active" id="tabMetaGlobal" onclick="setMetaModo('global')">
+        <i class="ti ti-users"></i> Meta Global
+      </button>
+      <button type="button" class="meta-mode-tab" id="tabMetaIndividual" onclick="setMetaModo('individual')">
+        <i class="ti ti-user-check"></i> Por Vendedor
+      </button>
+    </div>
+
+    <!-- Modo: Global -->
+    <div id="metaModoGlobal" class="modal-meta-body">
+      <div class="meta-info-box">
+        <i class="ti ti-info-circle"></i>
+        Aplicada a todos os vendedores sem meta individual definida.
+      </div>
+      <label class="modal-meta-label">Número de vendas</label>
+      <div class="modal-meta-input-wrap">
+        <i class="ti ti-chart-bar"></i>
+        <input type="number" id="metaMensalInput" min="1" max="9999" step="1" value="30" placeholder="Ex: 30">
+        <span class="modal-meta-unit">vendas/mês</span>
+      </div>
+      <div class="modal-meta-hint">Meta global atual: <strong id="modalMetaAtualLabel">30</strong> vendas</div>
+    </div>
+
+    <!-- Modo: Por Vendedor -->
+    <div id="metaModoIndividual" class="modal-meta-body" style="display:none">
+      <div class="meta-info-box">
+        <i class="ti ti-info-circle"></i>
+        Deixe em branco para usar a meta global. Vendedores com meta individual a usarão no lugar da global.
+      </div>
+      <div id="metaVendedoresList" class="meta-vendedores-list">
+        <div class="meta-loading"><i class="ti ti-loader"></i> Carregando vendedores...</div>
+      </div>
+    </div>
+
+    <div class="modal-meta-footer">
+      <button class="btn btn-ghost" id="btnCancelarMeta">Cancelar</button>
+      <button class="btn btn-primary" id="btnSalvarMeta">
+        <i class="ti ti-check"></i> Salvar
+      </button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
