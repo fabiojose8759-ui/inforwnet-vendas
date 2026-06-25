@@ -195,7 +195,6 @@ window.toggleUserDropdown = function(e) {
   const btn = document.getElementById('topbar-user-btn');
   const dropdown = document.getElementById('user-dropdown');
   const isOpen = dropdown.classList.contains('open');
-  // Fecha painel de notificações se estiver aberto
   const np = document.getElementById('notifPanel');
   if (np) np.classList.remove('open');
   if (isOpen) {
@@ -691,7 +690,6 @@ if (notifBtn && notifPanel) {
   notifBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     const isOpen = notifPanel.classList.toggle('open');
-    // Fecha o dropdown de usuário se estiver aberto
     const ud = document.getElementById('user-dropdown');
     const ub = document.getElementById('topbar-user-btn');
     if (ud) ud.classList.remove('open');
@@ -1074,34 +1072,34 @@ function splitPlano(plano) {
 }
 
 function formatClienteText(cliente) {
-  const val = (v) => (v && String(v).trim()) ? String(v).trim() : '';
+  const v = (x) => (x && String(x).trim()) ? String(x).trim() : '';
   const { nome: planoNome, valor: planoValor } = splitPlano(cliente.plano);
 
   const linhas = [
     '📋 DADOS DO CLIENTE',
     '',
-    `👤 Nome: ${val(cliente.nome) || '-'}`,
-    `📄 CPF: ${val(cliente.cpf) || '-'}`,
-    `📄 RG: ${val(cliente.rg)}`,
+    `👤 Nome: ${v(cliente.nome) || '-'}`,
+    `📄 CPF: ${v(cliente.cpf) || '-'}`,
+    `📄 RG: ${v(cliente.rg)}`,
     '',
-    `📍 Endereço: ${val(cliente.endereco) || '-'}`,
-    val(cliente.bairro) ? `🏘️ Bairro: ${val(cliente.bairro)}` : '',
+    `📍 Endereço: ${v(cliente.endereco) || '-'}`,
+    v(cliente.bairro) ? `🏘️ Bairro: ${v(cliente.bairro)}` : '',
     '',
-    `🛜 Plano: ${val(planoNome) || val(cliente.plano) || '-'}`,
-    planoValor ? `💰 Mensalidade: ${val(planoValor)}` : '',
+    `🛜 Plano: ${v(planoNome) || v(cliente.plano) || '-'}`,
+    planoValor ? `💰 Mensalidade: ${v(planoValor)}` : '',
     cliente.vencimento ? `📅 Vencimento: Dia ${cliente.vencimento}` : '',
     '',
-    `📞 Contato: ${val(cliente.tel1) || '-'}`,
-    val(cliente.tel2) ? `📞 Contato 2: ${val(cliente.tel2)}` : '',
-    `📧 E-mail: ${val(cliente.email) || '-'}`,
+    `📞 Contato: ${v(cliente.tel1) || '-'}`,
+    v(cliente.tel2) ? `📞 Contato 2: ${v(cliente.tel2)}` : '',
+    `📧 E-mail: ${v(cliente.email) || '-'}`,
     '',
-    `💳 Pagamento: ${val(cliente.pgto)}`,
-    `💰 Taxa: ${val(cliente.valorInstalacao) || 'R$ 00,00'}`,
-    val(cliente.parcelas) ? `🔁 Parcelamento: ${val(cliente.parcelas)}` : '',
+    `💳 Pagamento: ${v(cliente.pgto)}`,
+    `💰 Taxa: ${v(cliente.valorInstalacao) || 'R$ 00,00'}`,
+    v(cliente.parcelas) ? `🔁 Parcelamento: ${v(cliente.parcelas)}` : '',
     '',
-    `📝 Obs: ${val(cliente.obs)}`,
+    `📝 Obs: ${v(cliente.obs)}`,
     '',
-    `👤 Vendedor: ${val(cliente.userNome)}`,
+    `👤 Vendedor: ${v(cliente.userNome)}`,
   ].filter((linha, i, arr) => {
     if (linha === '') return i === 0 || arr[i - 1] !== '';
     return true;
@@ -1350,7 +1348,6 @@ if (btnSalvarMeta) {
       } catch (_) { /* sem regra config — localStorage já salvou */ }
 
       showToast('Meta global atualizada!', 'ti-check');
-      // (modal fechado — agora é página inline)
       btnSalvarMeta.disabled = false;
     } else {
       // Modo individual — salva metaMensal em cada users/{uid}
@@ -1383,7 +1380,6 @@ if (btnSalvarMeta) {
       btnSalvarMeta.disabled = false;
       if (erros === 0) {
         showToast('Metas individuais salvas!', 'ti-check');
-        // (modal fechado — agora é página inline)
       } else {
         showToast(`${salvos} salvo(s), ${erros} erro(s). Verifique as Firestore Rules.`, 'ti-alert-circle', true);
       }
