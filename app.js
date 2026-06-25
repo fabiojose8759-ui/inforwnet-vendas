@@ -342,11 +342,10 @@ overlay.addEventListener('click', () => {
 
 // ── NAVEGAÇÃO ──
 function navigate(pageId) {
-  if ((pageId === 'usuarios' || pageId === 'financeiro' || pageId === 'meta') && !isAdmin()) {
+  if ((pageId === 'usuarios' || pageId === 'financeiro') && !isAdmin()) {
     showToast('Acesso permitido somente para ADMIN.', 'ti-alert-circle', true);
     pageId = 'dashboard';
   }
-  if (pageId === 'meta') renderMetaVendedores();
 
   pages.forEach(p => p.classList.remove('active'));
   navItems.forEach(n => n.classList.remove('active'));
@@ -362,7 +361,11 @@ function navigate(pageId) {
 
 navItems.forEach(item => {
   item.addEventListener('click', () => {
-    navigate(item.dataset.page);
+    if (item.dataset.page === 'meta') {
+      abrirModalMeta();
+    } else {
+      navigate(item.dataset.page);
+    }
   });
 });
 
@@ -713,11 +716,6 @@ function renderClientes() {
   const tbody = document.getElementById('tbodyClientes');
   if (!tbody) return;
 
-  if (!currentUser) {
-    tbody.innerHTML = emptyRow(7, 'Faça login para visualizar clientes.');
-    return;
-  }
-
   if (clientesCache.length === 0) {
     tbody.innerHTML = emptyRow(7, 'Nenhum cliente cadastrado ainda.');
     return;
@@ -728,9 +726,34 @@ function renderClientes() {
     ? clientesCache.filter((c) => [c.nome, c.cpf, c.plano, c.tel1].some((v) => String(v || '').toLowerCase().includes(termo)))
     : clientesCache;
 
-  if (lista.length === 0) {
-    tbody.innerHTML = emptyRow(7, `Nenhum cliente encontrado para "${termo}".`);
-    return;
+  const isMobile = window.innerWidth <= 600;
+
+  if (isMobile) {
+    // RENDERIZAÇÃO EM CARDS (MOBILE)
+    tbody.innerHTML = lista.map((c) => `
+      <div class="cliente-card">
+        <div class="card-header">
+          <div class="card-avatar">${getInitials(c.nome)}</div>
+          <div class="card-info">
+            <div class="card-nome">${escapeHtml(c.nome)}</div>
+            <div class="card-sub">${escapeHtml(c.cpf || '')}</div>
+          </div>
+          <span class="pill ${c.status === 'Ativo' ? 'pill-green' : 'pill-amber'}">${escapeHtml(c.status)}</span>
+        </div>
+        <div class="card-body">
+          ${escapeHtml(c.plano)}<br>
+          ${escapeHtml(c.tel1)}
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-action btn-action-edit" onclick="editarCliente('${c.id}')"><i class="ti ti-edit"></i></button>
+          <button class="btn btn-action btn-action-copy" onclick="copiarClienteTexto('${c.id}')"><i class="ti ti-copy"></i></button>
+          <button class="btn btn-action btn-action-whatsapp" onclick="exportarClienteWhatsApp('${c.id}')"><i class="ti ti-brand-whatsapp"></i></button>
+        </div>
+      </div>
+    `).join('');
+  } else {
+    // MANTÉM A TABELA ORIGINAL (DESKTOP) - Ajuste conforme seu código existente
+    // ... seu código de tabela atual ...
   }
 
   tbody.innerHTML = lista.map((c) => `
@@ -1199,73 +1222,68 @@ window.confirmarRemocaoCliente = async function(id, btn) {
 };
 
 // ── CONFIGURAÇÕES DO DASHBOARD ──
-function getMetaGlobalLocal() {
-  const v = Number(localStorage.getItem('inforwnet-meta-global'));
-  return Number.isFinite(v) && v > 0 ? v : 30;
-}
-function setMetaGlobalLocal(val) {
-  localStorage.setItem('inforwnet-meta-global', String(val));
-}
-
 function listenDashboardConfig() {
   if (!db || !currentUser) return;
 
-  // Carrega localStorage imediatamente (funciona mesmo sem regra config no Firestore)
-  dashboardConfig.metaMensal = getMetaGlobalLocal();
-  syncMetaInput();
-  atualizarDash();
-
-  // Tenta sincronizar via Firestore (funciona se a regra config existir)
   unsubscribeDashboardConfig = db.collection('config').doc('dashboard').onSnapshot((snap) => {
     const data = snap.exists ? snap.data() : {};
     const meta = Number(data.metaMensal);
-    if (Number.isFinite(meta) && meta > 0) {
-      dashboardConfig.metaMensal = Math.round(meta);
-      setMetaGlobalLocal(dashboardConfig.metaMensal);
-    } else {
-      dashboardConfig.metaMensal = getMetaGlobalLocal();
-    }
+    dashboardConfig.metaMensal = Number.isFinite(meta) && meta > 0 ? Math.round(meta) : 30;
     syncMetaInput();
     atualizarDash();
   }, () => {
-    // config sem regra no Firestore — usa localStorage
-    dashboardConfig.metaMensal = getMetaGlobalLocal();
+    dashboardConfig.metaMensal = 30;
     syncMetaInput();
     atualizarDash();
   });
 
-  // Ouvir meta individual do usuário logado
+  // Ouvir alterações na própria meta individual do usuário logado
   db.collection('users').doc(currentUser.uid).onSnapshot((snap) => {
-    if (snap.exists && currentProfile) {
-      currentProfile.metaMensal = snap.data().metaMensal || null;
+    if (snap.exists) {
+      const data = snap.data();
+      if (currentProfile) {
+        currentProfile.metaMensal = data.metaMensal || null;
+      }
       atualizarDash();
     }
   }, () => {});
 }
 
 function syncMetaInput() {
-  const metaInd = currentProfile && Number(currentProfile.metaMensal) > 0 ? Number(currentProfile.metaMensal) : null;
-  const metaEfetiva = metaInd || dashboardConfig.metaMensal;
-  setText('dash-meta-valor', metaEfetiva);
+  setText('dash-meta-valor', dashboardConfig.metaMensal);
   if (metaMensalInput) metaMensalInput.value = String(dashboardConfig.metaMensal);
   if (modalMetaAtualLabel) modalMetaAtualLabel.textContent = dashboardConfig.metaMensal;
 }
 
-// ── Navegar para a página Meta ──
+// ── Modal Meta: abrir/fechar ──
 function abrirModalMeta() {
-  navigate('meta');
+  if (metaMensalInput) metaMensalInput.value = String(dashboardConfig.metaMensal);
+  if (modalMetaAtualLabel) modalMetaAtualLabel.textContent = dashboardConfig.metaMensal;
+  // Sempre abre na aba global
+  setMetaModo('global');
+  if (modalMetaOverlay) { modalMetaOverlay.classList.add('open'); metaMensalInput?.focus(); }
 }
 
-if (btnAbrirMeta) btnAbrirMeta.addEventListener('click', () => navigate('meta'));
+function fecharModalMeta() {
+  if (modalMetaOverlay) modalMetaOverlay.classList.remove('open');
+}
+
+if (btnAbrirMeta) btnAbrirMeta.addEventListener('click', abrirModalMeta);
+if (btnFecharMeta) btnFecharMeta.addEventListener('click', fecharModalMeta);
+if (btnCancelarMeta) btnCancelarMeta.addEventListener('click', fecharModalMeta);
+if (modalMetaOverlay) {
+  modalMetaOverlay.addEventListener('click', (e) => { if (e.target === modalMetaOverlay) fecharModalMeta(); });
+}
 
 // ── Alternância de modo: global / por vendedor ──
 window.setMetaModo = function(modo) {
   metasModoAtual = modo;
-  document.querySelectorAll('.meta-page-tab').forEach(t => t.classList.remove('active'));
-  const tab = document.getElementById(modo === 'global' ? 'tabMetaGlobal' : 'tabMetaIndividual');
-  if (tab) tab.classList.add('active');
+  const tabGlobal = document.getElementById('tabMetaGlobal');
+  const tabInd    = document.getElementById('tabMetaIndividual');
   const bodyGlobal = document.getElementById('metaModoGlobal');
   const bodyInd    = document.getElementById('metaModoIndividual');
+  if (tabGlobal)  tabGlobal.classList.toggle('active', modo === 'global');
+  if (tabInd)     tabInd.classList.toggle('active', modo === 'individual');
   if (bodyGlobal) bodyGlobal.style.display = modo === 'global' ? '' : 'none';
   if (bodyInd)    bodyInd.style.display    = modo === 'individual' ? '' : 'none';
   if (modo === 'individual') renderMetaVendedores();
@@ -1314,96 +1332,50 @@ if (btnSalvarMeta) {
         return showToast('Informe uma meta entre 1 e 9999.', 'ti-alert-circle', true);
       }
       btnSalvarMeta.disabled = true;
-
-      // Salva localmente SEMPRE (funciona sem regra config no Firestore)
-      setMetaGlobalLocal(meta);
-      dashboardConfig.metaMensal = meta;
-      syncMetaInput();
-      atualizarDash();
-
-      // Tenta persistir no Firestore (silencioso se não tiver regra)
       try {
         await db.collection('config').doc('dashboard').set({
           metaMensal: meta,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
           updatedBy: currentUser.uid
         }, { merge: true });
-      } catch (_) { /* sem regra config — localStorage já salvou */ }
-
-      showToast('Meta global atualizada!', 'ti-check');
-      fecharModalMeta();
-      btnSalvarMeta.disabled = false;
+        showToast('Meta global atualizada.', 'ti-check');
+        fecharModalMeta();
+      } catch (error) {
+        showToast('Erro ao salvar meta global.', 'ti-alert-circle', true);
+      } finally {
+        btnSalvarMeta.disabled = false;
+      }
     } else {
       // Modo individual — salva metaMensal em cada users/{uid}
-      // A regra users permite: allow update: if isAdmin()
       const inputs = document.querySelectorAll('.meta-vendedor-input');
       if (!inputs.length) return showToast('Nenhum vendedor para salvar.', 'ti-alert-circle', true);
 
       btnSalvarMeta.disabled = true;
-      let erros = 0;
-      let salvos = 0;
-
-      for (const input of Array.from(inputs)) {
-        const uid = input.dataset.uid;
-        const val = input.value.trim();
-        const num = val ? Math.round(Number(val)) : null;
-        const ref = db.collection('users').doc(uid);
-        try {
+      try {
+        const batch = db.batch();
+        inputs.forEach((input) => {
+          const uid = input.dataset.uid;
+          const val = input.value.trim();
+          const num = val ? Math.round(Number(val)) : null;
+          const ref = db.collection('users').doc(uid);
           if (num && num >= 1 && num <= 9999) {
-            await ref.update({ metaMensal: num });
+            batch.update(ref, { metaMensal: num, metaUpdatedAt: firebase.firestore.FieldValue.serverTimestamp() });
           } else {
-            await ref.update({ metaMensal: firebase.firestore.FieldValue.delete() });
+            // Remove meta individual (usa a global)
+            batch.update(ref, { metaMensal: firebase.firestore.FieldValue.delete() });
           }
-          salvos++;
-        } catch (e) {
-          console.error('Erro ao salvar meta do uid', uid, e);
-          erros++;
-        }
-      }
-
-      btnSalvarMeta.disabled = false;
-      if (erros === 0) {
-        showToast('Metas individuais salvas!', 'ti-check');
+        });
+        await batch.commit();
+        showToast('Metas individuais salvas com sucesso!', 'ti-check');
         fecharModalMeta();
-      } else {
-        showToast(`${salvos} salvo(s), ${erros} erro(s). Verifique as Firestore Rules.`, 'ti-alert-circle', true);
+      } catch (error) {
+        showToast('Erro ao salvar metas individuais.', 'ti-alert-circle', true);
+      } finally {
+        btnSalvarMeta.disabled = false;
       }
     }
   });
 }
-
-// ── Salvar metas individuais (botão da página) ──
-document.addEventListener('click', async function(e) {
-  const btn = e.target.closest('#btnSalvarMetaInd');
-  if (!btn) return;
-  if (!isAdmin()) return showToast('Apenas Administrador pode alterar metas.', 'ti-alert-circle', true);
-
-  const inputs = document.querySelectorAll('.meta-vendedor-input');
-  if (!inputs.length) return showToast('Nenhum vendedor para salvar.', 'ti-alert-circle', true);
-
-  btn.disabled = true;
-  let erros = 0, salvos = 0;
-  for (const input of Array.from(inputs)) {
-    const uid = input.dataset.uid;
-    const val = input.value.trim();
-    const num = val ? Math.round(Number(val)) : null;
-    const ref = db.collection('users').doc(uid);
-    try {
-      if (num && num >= 1 && num <= 9999) {
-        await ref.update({ metaMensal: num });
-      } else {
-        await ref.update({ metaMensal: firebase.firestore.FieldValue.delete() });
-      }
-      salvos++;
-    } catch (e) { erros++; }
-  }
-  btn.disabled = false;
-  if (erros === 0) {
-    showToast('Metas individuais salvas!', 'ti-check');
-  } else {
-    showToast(`${salvos} salvo(s), ${erros} com erro. Verifique as Firestore Rules.`, 'ti-alert-circle', true);
-  }
-});
 
 // ── USUÁRIOS ──
 function listenUsuarios() {
@@ -1761,3 +1733,24 @@ navigate('dashboard');
 renderClientes();
 atualizarDash();
 startAuthListener();
+
+// Adicione um ouvinte para redimensionamento, caso o usuário gire o celular
+window.addEventListener('resize', renderClientes);
+
+function renderClientes() {
+  const tbody = document.getElementById('tbodyClientes');
+  if (!tbody) return;
+
+  // ... (código anterior de filtragem)
+
+  // Use matchMedia para consistência com o CSS
+  const isMobile = window.matchMedia("(max-width: 600px)").matches;
+
+  if (isMobile) {
+    // Verifique se a lista está sendo gerada
+    console.log("Renderizando em modo mobile");
+    tbody.innerHTML = lista.map((c) => `...`).join('');
+  } else {
+    // ... código de renderização da tabela (desktop)
+  }
+}
