@@ -1,13 +1,10 @@
-const CACHE = 'inforwnet-v2';
+const CACHE = 'inforwnet-v1';
 const ASSETS = [
   '/inforwnet-vendas/',
   '/inforwnet-vendas/index.html',
   '/inforwnet-vendas/style.css',
   '/inforwnet-vendas/app.js',
-  '/inforwnet-vendas/manifest.json',
-  '/inforwnet-vendas/icon-192.png',
-  '/inforwnet-vendas/icon-512.png',
-  '/inforwnet-vendas/logo-de-carregamento.png'
+  '/inforwnet-vendas/manifest.json'
 ];
 
 self.addEventListener('install', e => {
@@ -27,6 +24,7 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  // Não intercepta requisições do Firebase
   if (e.request.url.includes('firebase') || e.request.url.includes('googleapis')) return;
 
   e.respondWith(
