@@ -1,10 +1,10 @@
-const CACHE = 'inforwnet-v1';
+const CACHE = 'inforwnet-v4';
 const ASSETS = [
-  '/inforwnet-vendas/',
-  '/inforwnet-vendas/index.html',
-  '/inforwnet-vendas/style.css',
-  '/inforwnet-vendas/app.js',
-  '/inforwnet-vendas/manifest.json'
+  '/inforwnet-v4endas/',
+  '/inforwnet-v4endas/index.html',
+  '/inforwnet-v4endas/style.css',
+  '/inforwnet-v4endas/app.js',
+  '/inforwnet-v4endas/manifest.json'
 ];
 
 self.addEventListener('install', e => {
