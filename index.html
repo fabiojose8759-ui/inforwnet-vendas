@@ -355,7 +355,12 @@
         <div class="card dash-chart-side">
           <div class="card-title-row">
             <span class="card-title-text"><i class="ti ti-target"></i> Meta do mês</span>
-            <span class="dash-badge-period" id="dash-meta-pct-badge">0%</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button class="btn-meta-edit admin-only" id="btnAbrirMeta" title="Editar meta mensal">
+                <i class="ti ti-pencil"></i> Editar meta
+              </button>
+              <span class="dash-badge-period" id="dash-meta-pct-badge">0%</span>
+            </div>
           </div>
 
           <div class="meta-card-body">
@@ -700,67 +705,6 @@
       </div>
     </div>
 
-
-    <!-- ── META ── -->
-    <div class="page-section" id="page-meta">
-      <div class="page-header">
-        <div class="ph-icon" style="background:rgba(227,42,42,.12);color:#E32A2A"><i class="ti ti-target"></i></div>
-        <div>
-          <div class="ph-title">Metas de Vendas</div>
-          <div class="ph-sub">Configure metas globais ou individuais por vendedor</div>
-        </div>
-      </div>
-
-      <!-- Abas -->
-      <div class="meta-page-tabs">
-        <button type="button" class="meta-page-tab active" id="tabMetaGlobal" onclick="setMetaModo('global')">
-          <i class="ti ti-users"></i> Meta Global
-        </button>
-        <button type="button" class="meta-page-tab" id="tabMetaIndividual" onclick="setMetaModo('individual')">
-          <i class="ti ti-user-check"></i> Por Vendedor
-        </button>
-      </div>
-
-      <!-- GLOBAL -->
-      <div id="metaModoGlobal" class="card meta-global-card">
-        <div class="card-title"><i class="ti ti-target"></i> Meta Global Mensal</div>
-        <div class="meta-info-box">
-          <i class="ti ti-info-circle"></i>
-          Aplicada a todos os vendedores que não tiverem meta individual definida.
-        </div>
-        <label class="modal-meta-label">Número de vendas por mês</label>
-        <div class="modal-meta-input-wrap">
-          <i class="ti ti-chart-bar"></i>
-          <input type="number" id="metaMensalInput" min="1" max="9999" step="1" value="30" placeholder="Ex: 30">
-          <span class="modal-meta-unit">vendas/mês</span>
-        </div>
-        <div class="modal-meta-hint" style="margin-bottom:20px">Meta global atual: <strong id="modalMetaAtualLabel">30</strong> vendas</div>
-        <div style="display:flex;justify-content:flex-end">
-          <button class="btn btn-primary" type="button" id="btnSalvarMeta">
-            <i class="ti ti-check"></i> Salvar meta global
-          </button>
-        </div>
-      </div>
-
-      <!-- INDIVIDUAL -->
-      <div id="metaModoIndividual" class="card" style="display:none">
-        <div class="card-title"><i class="ti ti-users"></i> Meta por Vendedor</div>
-        <div class="meta-info-box">
-          <i class="ti ti-info-circle"></i>
-          Deixe em branco para usar a meta global. Campos preenchidos substituem a global para aquele vendedor.
-        </div>
-        <div id="metaVendedoresList" class="meta-vendedores-list">
-          <div class="meta-loading"><i class="ti ti-loader"></i> Carregando vendedores...</div>
-        </div>
-        <div style="display:flex;justify-content:flex-end;margin-top:16px">
-          <button class="btn btn-primary" type="button" id="btnSalvarMetaInd">
-            <i class="ti ti-check"></i> Salvar metas individuais
-          </button>
-        </div>
-      </div>
-
-    </div>
-
     <div class="page-section" id="page-perfil">
       <div class="page-header">
         <div class="ph-icon"><i class="ti ti-user-circle"></i></div>
@@ -827,6 +771,62 @@
     navigator.serviceWorker.register('sw.js');
   }
 </script>
+<!-- Modal: Editar Meta Mensal -->
+<div class="modal-overlay" id="modalMetaOverlay">
+  <div class="modal-box modal-meta">
+    <div class="modal-meta-header">
+      <div class="modal-meta-icon"><i class="ti ti-target"></i></div>
+      <div>
+        <div class="modal-meta-title">Metas de Vendas</div>
+        <div class="modal-meta-sub">Configure metas globais ou individuais por vendedor</div>
+      </div>
+      <button class="modal-meta-close" id="btnFecharMeta" title="Fechar"><i class="ti ti-x"></i></button>
+    </div>
+
+    <!-- Abas de modo -->
+    <div class="meta-mode-tabs">
+      <button type="button" class="meta-mode-tab active" id="tabMetaGlobal" onclick="setMetaModo('global')">
+        <i class="ti ti-users"></i> Meta Global
+      </button>
+      <button type="button" class="meta-mode-tab" id="tabMetaIndividual" onclick="setMetaModo('individual')">
+        <i class="ti ti-user-check"></i> Por Vendedor
+      </button>
+    </div>
+
+    <!-- Modo: Global -->
+    <div id="metaModoGlobal" class="modal-meta-body">
+      <div class="meta-info-box">
+        <i class="ti ti-info-circle"></i>
+        Aplicada a todos os vendedores sem meta individual definida.
+      </div>
+      <label class="modal-meta-label">Número de vendas</label>
+      <div class="modal-meta-input-wrap">
+        <i class="ti ti-chart-bar"></i>
+        <input type="number" id="metaMensalInput" min="1" max="9999" step="1" value="30" placeholder="Ex: 30">
+        <span class="modal-meta-unit">vendas/mês</span>
+      </div>
+      <div class="modal-meta-hint">Meta global atual: <strong id="modalMetaAtualLabel">30</strong> vendas</div>
+    </div>
+
+    <!-- Modo: Por Vendedor -->
+    <div id="metaModoIndividual" class="modal-meta-body" style="display:none">
+      <div class="meta-info-box">
+        <i class="ti ti-info-circle"></i>
+        Deixe em branco para usar a meta global. Vendedores com meta individual a usarão no lugar da global.
+      </div>
+      <div id="metaVendedoresList" class="meta-vendedores-list">
+        <div class="meta-loading"><i class="ti ti-loader"></i> Carregando vendedores...</div>
+      </div>
+    </div>
+
+    <div class="modal-meta-footer">
+      <button class="btn btn-ghost" id="btnCancelarMeta">Cancelar</button>
+      <button class="btn btn-primary" id="btnSalvarMeta">
+        <i class="ti ti-check"></i> Salvar
+      </button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
