@@ -43,5 +43,24 @@ service cloud.firestore {
       allow update, delete: if isAdmin()
         || resource.data.userId == request.auth.uid;
     }
+
+    match /notificacoes/{notifId} {
+      // Apenas o admin gera notificações (ex: ao ativar a instalação de um cliente)
+      allow create: if isAdmin()
+        && request.resource.data.userId is string
+        && request.resource.data.lida == false;
+
+      // Cada vendedor só lê as próprias notificações; admin lê todas
+      allow read: if signedIn()
+        && (resource.data.userId == request.auth.uid || isAdmin());
+
+      // O destinatário só pode alterar o campo "lida" (marcar como lida)
+      allow update: if signedIn()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lida']);
+
+      allow delete: if isAdmin()
+        || (signedIn() && resource.data.userId == request.auth.uid);
+    }
   }
 }
