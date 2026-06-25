@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inforwnet Vendas</title>
+  <meta name="theme-color" content="#1a56db">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Inforwnet">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- SPLASH — cobre a tela enquanto o Firebase resolve a sessão -->
+  <div id="appSplash">
+    <!-- Fundo animado -->
+    <canvas id="splashCanvas"></canvas>
+  <script>
+    (function () {
+      const canvas = document.getElementById('splashCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      window.addEventListener('resize', () => {
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+      });
+      const TOTAL = 60;
+      const particles = Array.from({ length: TOTAL }, () => ({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        r: Math.random() * 1.4 + 0.2,
+        speed: Math.random() * 0.35 + 0.08,
+        angle: Math.random() * Math.PI * 2,
+        drift: (Math.random() - 0.5) * 0.006,
+        alpha: Math.random() * 0.4 + 0.08,
+        pulse: Math.random() * Math.PI * 2,
+      }));
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+          p.pulse += 0.018;
+          const a = p.alpha * (0.7 + 0.3 * Math.sin(p.pulse));
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255,255,255,' + a + ')';
+          ctx.fill();
+          p.angle += p.drift;
+          p.x += Math.cos(p.angle) * p.speed;
+          p.y -= p.speed * 0.3;
+          if (p.y < -10 || p.x < -10 || p.x > canvas.width + 10) {
+            p.x = Math.random() * canvas.width;
+            p.y = canvas.height + 10;
+          }
+        });
+        if (!document.getElementById('appSplash').classList.contains('hidden')) {
+          requestAnimationFrame(draw);
+        }
+      }
+      draw();
+    })();
+  </script>
+    <div class="splash-inner">
+
+      <div class="splash-icon-wrap">
+        <div class="splash-icon-glow"></div>
+        <div class="splash-icon-card">
+          <img src="./logo-de-carregamento.png" alt="Inforwnet" class="splash-logo-img">
+        </div>
+      </div>
+
+      <div class="splash-bar-wrap">
+        <div class="splash-bar"><div class="splash-progress"></div></div>
+      </div>
+
+      <div class="splash-texts">
+        <div class="splash-title">Carregando...</div>
+        <div class="splash-sub">Aprimorando sua experiência Inforwnet</div>
+      </div>
+
+    </div>
+  </div>
+
+<!-- AUTH -->
+<section class="auth-shell" id="authShell">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <i class="ti ti-wifi"></i>
+      <div>
+        <div class="logo-txt">INFOR<span>WNET</span></div>
+        <div class="logo-sub">Sistema de Vendas</div>
+      </div>
+    </div>
+
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab active" id="tabLogin">Entrar</button>
+      <button type="button" class="auth-tab" id="tabRegister">Cadastrar</button>
+    </div>
+
+    <div class="auth-error" id="authError">
+      <i class="ti ti-alert-circle"></i>
+      <span id="authErrorMsg"></span>
+    </div>
+
+    <form class="auth-form active" id="loginForm" onsubmit="return false">
+      <div class="form-group">
+        <label>Email</label>
+        <div class="input-wrap">
+          <span class="inp-icon"><i class="ti ti-mail"></i></span>
+          <input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <div class="input-wrap">
+          <span class="inp-icon"><i class="ti ti-lock"></i></span>
+          <input type="password" id="loginSenha" placeholder="Sua senha" autocomplete="current-password">
+          <button type="button" class="eye-btn" onclick="toggleSenha('loginSenha', this)"><i class="ti ti-eye"></i></button>
+        </div>
+      </div>
+      <button class="btn btn-primary" type="button" id="btnLogin">
+        <i class="ti ti-login"></i> Entrar
+      </button>
+    </form>
+
+    <form class="auth-form" id="registerForm" onsubmit="return false">
+      <div class="form-group">
+        <label>Nome</label>
+        <div class="input-wrap">
+          <span class="inp-icon"><i class="ti ti-user"></i></span>
+          <input type="text" id="registerNome" placeholder="Nome completo" maxlength="80" autocomplete="name">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <div class="input-wrap">
+          <span class="inp-icon"><i class="ti ti-mail"></i></span>
+          <input type="email" id="registerEmail" placeholder="seu@email.com" autocomplete="email">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <div class="input-wrap">
+          <span class="inp-icon"><i class="ti ti-lock"></i></span>
+          <input type="password" id="registerSenha" placeholder="Minimo 6 caracteres" autocomplete="new-password">
+          <button type="button" class="eye-btn" onclick="toggleSenha('registerSenha', this)"><i class="ti ti-eye"></i></button>
+        </div>
+      </div>
+      <button class="btn btn-primary" type="button" id="btnRegister">
+        <i class="ti ti-user-plus"></i> Criar conta
+      </button>
+      <div class="register-success" id="registerSuccess">
+        <i class="ti ti-circle-check"></i>
+        <div>
+          <strong>Conta criada com sucesso!</strong>
+          <span>Clique em "Entrar" e faça login para continuar.</span>
+        </div>
+      </div>
+    </form>
+
+    <div class="auth-note" id="firebaseConfigNotice">
+      Configure o Firebase no arquivo app.js para liberar login e cadastro.
+    </div>
+  </div>
+</section>
+
+<!-- SIDEBAR OVERLAY (mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+
+  <div class="sidebar-logo">
+    <a href="#" class="logo-img">
+      <i class="ti ti-wifi"></i>
+      <div>
+        <div class="logo-txt">INFOR<span>WNET</span></div>
+      </div>
+    </a>
+    <div class="logo-sub">Sistema de Vendas</div>
+  </div>
+
+  <div class="sidebar-user">
+    <div class="avatar-wrap">
+      <div class="avatar">JV</div>
+    </div>
+    <div class="user-info">
+      <div class="name">João Vendedor</div>
+      <div class="role">Vendedor</div>
+      <div class="user-online">Online</div>
+    </div>
+    <i class="ti ti-chevron-down user-chevron"></i>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-label">Principal</div>
+    <a class="nav-item" data-page="dashboard">
+      <i class="ti ti-layout-dashboard"></i> Dashboard
+    </a>
+    <a class="nav-item active" data-page="cadastrar">
+      <i class="ti ti-user-plus"></i> Cadastrar Cliente
+    </a>
+    <a class="nav-item" data-page="clientes">
+      <i class="ti ti-users"></i> Clientes
+    </a>
+
+    <div class="nav-divider"></div>
+    <a class="nav-item" data-page="relatorios">
+      <i class="ti ti-chart-bar"></i> Relatórios
+    </a>
+    <a class="nav-item admin-only" data-page="meta" id="navItemMeta">
+      <i class="ti ti-target"></i> Meta
+    </a>
+
+    <div class="nav-divider"></div>
+    <div class="nav-label">Sistema</div>
+    <a class="nav-item" data-page="perfil">
+      <i class="ti ti-user-circle"></i> Meu Perfil
+    </a>
+    <a class="nav-item admin-only" data-page="usuarios">
+      <i class="ti ti-shield-lock"></i> Usuários
+    </a>
+    <a class="nav-item" data-page="sair">
+      <i class="ti ti-logout"></i> Sair
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="logo-bottom">
+      <div class="lb-txt">INFOR<span>WNET</span></div>
+      <div class="lb-sub">Conectando você ao mundo!</div>
+    </div>
+    <div class="copy">© 2026 Inforwnet</div>
+  </div>
+
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <button class="menu-btn" id="menuBtn" aria-label="Menu">
+      <i class="ti ti-menu-2"></i>
+    </button>
+    <div class="topbar-search" id="topbarSearchWrap">
+      <i class="ti ti-search"></i>
+      <input type="text" id="topbarSearchInput" placeholder="Buscar cliente, CPF, plano..." autocomplete="off">
+      <button class="topbar-search-clear" type="button" id="topbarSearchClear" title="Limpar busca">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-actions">
+      <div class="notif-wrap" id="notifWrap">
+        <button class="notif-btn" id="notifBtn" aria-label="Notificações">
+          <i class="ti ti-bell"></i>
+          <span class="badge" id="notifBadge" style="display:none;">0</span>
+        </button>
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-panel-header">
+            <span>Notificações</span>
+            <button class="notif-mark-all" id="notifMarkAll" type="button" disabled>Marcar todas como lidas</button>
+          </div>
+          <div class="notif-list" id="notifList"></div>
+        </div>
+      </div>
+      <button class="theme-btn" id="themeBtn">
+        <i class="ti ti-moon" id="themeIcon"></i>
+        <span id="themeLabel">Escuro</span>
+      </button>
+      <div class="topbar-user" id="topbar-user-btn" onclick="toggleUserDropdown()">
+        <div class="avatar">JV</div>
+        <span class="uname">João Vendedor</span>
+        <i class="ti ti-chevron-down" id="topbar-chevron"></i>
+      </div>
+      <div class="user-dropdown" id="user-dropdown">
+        <button class="user-dropdown-item" onclick="fazerLogout()">
+          <i class="ti ti-logout"></i>
+          <span>Sair</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- PÁGINAS -->
+  <div class="page">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="page-section" id="page-dashboard">
+
+      <!-- Header -->
+      <div class="dash-header">
+        <div>
+          <div class="ph-title">Olá, <span id="dash-greeting-nome">Vendedor</span>!</div>
+          <div class="ph-sub">Veja o resumo geral do seu sistema</div>
+        </div>
+        <div class="dash-date">
+          <i class="ti ti-calendar"></i>
+          <span id="dash-data-hoje"></span>
+        </div>
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="dash-stats">
+        <div class="stat-card stat-action" onclick="navigate('clientes')">
+          <div class="sc-top">
+            <div class="sc-icon sc-icon-blue"><i class="ti ti-users"></i></div>
+            <span class="sc-badge sc-badge-up"><i class="ti ti-arrow-up"></i> Todos</span>
+          </div>
+          <div class="sc-val" id="dash-total">0</div>
+          <div class="sc-label">Total de clientes</div>
+          <div class="sc-sub">Todos os cadastros</div>
+        </div>
+        <div class="stat-card stat-action" onclick="navigate('clientes')">
+          <div class="sc-top">
+            <div class="sc-icon sc-icon-orange"><i class="ti ti-clock-hour-4"></i></div>
+            <span class="sc-badge sc-badge-warn"><i class="ti ti-alert-circle"></i> Pendente</span>
+          </div>
+          <div class="sc-val" id="dash-pendentes">0</div>
+          <div class="sc-label">Clientes pendentes</div>
+          <div class="sc-sub sc-warn">Aguardando instalação</div>
+        </div>
+        <div class="stat-card stat-action" onclick="navigate('instalacoes')">
+          <div class="sc-top">
+            <div class="sc-icon sc-icon-green"><i class="ti ti-tool"></i></div>
+            <span class="sc-badge sc-badge-new">Hoje</span>
+          </div>
+          <div class="sc-val" id="dash-instalacoes-hoje">0</div>
+          <div class="sc-label">Instalações de hoje</div>
+          <div class="sc-sub sc-success">Confirmadas hoje</div>
+        </div>
+
+        <div class="stat-card stat-action" onclick="navigate('relatorios')">
+          <div class="sc-top">
+            <div class="sc-icon sc-icon-purple"><i class="ti ti-calendar-dollar"></i></div>
+            <span class="sc-badge sc-badge-new">Mês</span>
+          </div>
+          <div class="sc-val" id="dash-vendas-mes">0</div>
+          <div class="sc-label">Vendas do mês</div>
+          <div class="sc-sub">Cadastros deste mês</div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="dash-charts-row">
+        <div class="card dash-chart-side">
+          <div class="card-title-row">
+            <span class="card-title-text"><i class="ti ti-target"></i> Meta do mês</span>
+            <span class="dash-badge-period" id="dash-meta-pct-badge">0%</span>
+          </div>
+
+          <div class="meta-card-body">
+            <div class="meta-left">
+              <div class="meta-numbers">
+                <span class="meta-atual" id="dash-meta-atual">0</span>
+                <span class="meta-sep">/ <span id="dash-meta-valor">30</span> vendas</span>
+              </div>
+
+              <div class="meta-progress-bar">
+                <div class="meta-progress-fill" id="dash-meta-fill" style="width:0%"></div>
+              </div>
+
+              <div class="meta-faltam">Faltam <span class="meta-faltam-num" id="dash-meta-faltam">30</span> vendas para atingir a meta</div>
+            </div>
+
+            <div class="meta-right">
+              <div class="meta-stats-row">
+                <div class="meta-stat-box">
+                  <div class="meta-stat-icon meta-stat-icon-green"><i class="ti ti-trending-up"></i></div>
+                  <div class="meta-stat-info">
+                    <div class="meta-stat-label">Projeção para o mês</div>
+                    <div class="meta-stat-val green" id="dash-meta-projecao">0 vendas</div>
+                    <div class="meta-stat-sub">Se mantiver o ritmo atual</div>
+                  </div>
+                </div>
+                <div class="meta-stat-divider"></div>
+                <div class="meta-stat-box">
+                  <div class="meta-stat-icon meta-stat-icon-blue"><i class="ti ti-calendar"></i></div>
+                  <div class="meta-stat-info">
+                    <div class="meta-stat-label">Dias restantes</div>
+                    <div class="meta-stat-val blue" id="dash-meta-dias">0 dias</div>
+                    <div class="meta-stat-sub">Até o final do mês</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Row -->
+      <div class="dash-bottom-row dash-row-single">
+
+        <!-- Recentes -->
+        <div class="card dash-recentes-card">
+          <div class="card-title-row">
+            <span class="card-title-text"><i class="ti ti-clock"></i> Cadastros recentes</span>
+            <a class="dash-ver-todos" href="#" onclick="navigate('clientes');return false;">Ver Todos</a>
+          </div>
+
+          <div class="recentes-table-wrap">
+            <table class="recentes-table">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Plano</th>
+                  <th>Telefone</th>
+                  <th>Status</th>
+                  <th>Data</th>
+                  <th class="th-acoes">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="listaRecentes">
+                <tr><td colspan="6" class="dash-empty-cell">Nenhum cadastro ainda.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="recentes-mobile-list" id="listaRecentesMobile">
+            <div class="dash-empty">Nenhum cadastro ainda.</div>
+          </div>
+
+          <div class="recentes-footer" id="recentesFooter"></div>
+        </div>
+
+      </div>
+
+      <!-- Bottom Row 2 -->
+      <div class="dash-bottom-row dash-row-single">
+
+        <!-- Atividades -->
+        <div class="card dash-atividades-card">
+          <div class="card-title-row">
+            <span class="card-title-text"><i class="ti ti-bolt"></i> Atividades recentes</span>
+          </div>
+          <div class="timeline" id="dashTimeline">
+            <div class="dash-empty">Sem atividades.</div>
+          </div>
+          <a class="dash-link-meta" href="#" onclick="navigate('clientes');return false;">Ver todas as atividades →</a>
+        </div>
+
+      </div>
+
+
+      <div class="dash-footer">
+        <i class="ti ti-shield-check"></i> Sistema seguro e protegido &nbsp;·&nbsp; © 2026 Inforwnet Telecom. Todos os direitos reservados.
+      </div>
+
+    </div>
+
+    <!-- ── CADASTRAR CLIENTE ── -->
+    <div class="page-section active" id="page-cadastrar">
+      <div class="page-header">
+        <div class="ph-icon"><i class="ti ti-user-plus"></i></div>
+        <div>
+          <div class="ph-title">Cadastrar Cliente</div>
+          <div class="ph-sub">Preencha os dados do cliente para realizar o cadastro</div>
+        </div>
+      </div>
+
+      <form id="formCadastro" onsubmit="return false">
+
+        <div class="card">
+          <div class="card-title"><i class="ti ti-id-badge"></i> Dados do Cliente</div>
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label>Nome: *</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-user"></i></span>
+                <input type="text" id="nome" placeholder="Digite o nome completo" maxlength="80" autocomplete="name" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>CPF: *</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-id-badge-2"></i></span>
+                <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric" autocomplete="off" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>RG:</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-id-badge"></i></span>
+                <input type="text" id="rg" placeholder="Digite o RG" maxlength="9" inputmode="numeric" autocomplete="off">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Email:</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-mail"></i></span>
+                <input type="email" id="email" placeholder="email@exemplo.com" maxlength="120" autocomplete="email">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Endereço:</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-map-pin"></i></span>
+                <input type="text" id="endereco" placeholder="Digite o endereço completo" maxlength="120" autocomplete="street-address">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Bairro:</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-map-2"></i></span>
+                <input type="text" id="bairro" placeholder="Digite o bairro" maxlength="80" autocomplete="address-level3">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Dia de Vencimento:</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-calendar"></i></span>
+                <select id="vencimento">
+                  <option value="">Selecione o dia</option>
+                  <option value="5">Dia 5</option>
+                  <option value="10">Dia 10</option>
+                  <option value="15">Dia 15</option>
+                  <option value="20">Dia 20</option>
+                  <option value="25">Dia 25</option>
+                  <option value="30">Dia 30</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group col3">
+              <label>Plano Contratado: *</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-wifi"></i></span>
+                <input type="text" id="plano" placeholder="Ex: 600 Mega – R$ 119,99/mês" maxlength="100">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Telefone 01: *</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-phone"></i></span>
+                <input type="text" id="tel1" placeholder="(00) 00000-0000" maxlength="15" inputmode="numeric" autocomplete="tel" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Telefone 02:</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-phone"></i></span>
+                <input type="text" id="tel2" placeholder="(00) 00000-0000" maxlength="15" inputmode="numeric" autocomplete="tel">
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><i class="ti ti-credit-card"></i> Forma de Pagamento da Instalação</div>
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label>Forma de Pagamento:</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-credit-card"></i></span>
+                <select id="pgto">
+                  <option value="">Selecione a forma de pagamento</option>
+                  <option value="Pix">Pix</option>
+                  <option value="Boleto">Boleto</option>
+                  <option value="Cartão de Crédito">Cartão de Crédito</option>
+                  <option value="Cartão de Débito">Cartão de Débito</option>
+                  <option value="Dinheiro">Dinheiro</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Valor da Instalação:</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-currency-dollar"></i></span>
+                <input type="text" id="valorInstalacao" placeholder="R$ 0,00" maxlength="14" inputmode="numeric" autocomplete="off">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Parcelamento:</label>
+              <div class="input-wrap">
+                <span class="inp-icon"><i class="ti ti-credit-card"></i></span>
+                <select id="parcelas">
+                  <option value="">Selecione o parcelamento</option>
+                  <option value="À vista">À vista</option>
+                  <option value="2x">2x</option>
+                  <option value="3x">3x</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group col3">
+              <label>Observações:</label>
+              <textarea id="observacoes" placeholder="Digite observações adicionais (opcional)" maxlength="500"></textarea>
+              <div class="char-count" id="charCount">0/500</div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-danger-outline" type="button" id="btnLimpar">
+            <i class="ti ti-trash"></i> Limpar
+          </button>
+          <button class="btn btn-primary" type="button" id="btnCadastrar">
+            <i class="ti ti-device-floppy"></i> Cadastrar Cliente
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- ── CLIENTES ── -->
+    <div class="page-section" id="page-clientes">
+      <div class="page-header">
+        <div class="ph-icon"><i class="ti ti-users"></i></div>
+        <div>
+          <div class="ph-title">Clientes</div>
+          <div class="ph-sub">Todos os clientes cadastrados por você</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-list"></i> Lista de Clientes</div>
+        <table class="recent-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>CPF</th>
+              <th>Plano</th>
+              <th>Telefone</th>
+              <th>Data</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyClientes">
+            <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--txt-muted)">Nenhum cliente cadastrado ainda.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── PÁGINAS PLACEHOLDER ── -->
+    <div class="page-section" id="page-pedidos">
+      <div class="page-header">
+        <div class="ph-icon"><i class="ti ti-clipboard-list"></i></div>
+        <div><div class="ph-title">Pedidos</div><div class="ph-sub">Em breve</div></div>
+      </div>
+      <div class="card" style="text-align:center;padding:40px;color:var(--txt-muted)">
+        <i class="ti ti-tools" style="font-size:40px;display:block;margin-bottom:12px"></i>
+        Módulo em desenvolvimento
+      </div>
+    </div>
+
+    <div class="page-section" id="page-instalacoes">
+      <div class="page-header">
+        <div class="ph-icon"><i class="ti ti-tool"></i></div>
+        <div><div class="ph-title">Instalações</div><div class="ph-sub">Em breve</div></div>
+      </div>
+      <div class="card" style="text-align:center;padding:40px;color:var(--txt-muted)">
+        <i class="ti ti-tools" style="font-size:40px;display:block;margin-bottom:12px"></i>
+        Módulo em desenvolvimento
+      </div>
+    </div>
+
+    <div class="page-section" id="page-financeiro">
+      <div class="page-header">
+        <div class="ph-icon"><i class="ti ti-currency-dollar"></i></div>
+        <div><div class="ph-title">Financeiro</div><div class="ph-sub">Em breve</div></div>
+      </div>
+      <div class="card" style="text-align:center;padding:40px;color:var(--txt-muted)">
+        <i class="ti ti-tools" style="font-size:40px;display:block;margin-bottom:12px"></i>
+        Módulo em desenvolvimento
+      </div>
+    </div>
+
+    <div class="page-section" id="page-relatorios">
+      <div class="page-header">
+        <div class="ph-icon"><i class="ti ti-chart-bar"></i></div>
+        <div><div class="ph-title">Relatórios</div><div class="ph-sub">Em breve</div></div>
+      </div>
+      <div class="card" style="text-align:center;padding:40px;color:var(--txt-muted)">
+        <i class="ti ti-tools" style="font-size:40px;display:block;margin-bottom:12px"></i>
+        Módulo em desenvolvimento
+      </div>
+    </div>
+
+
+    <!-- ── META ── -->
+    <div class="page-section" id="page-meta">
+      <div class="page-header">
+        <div class="ph-icon" style="background:rgba(227,42,42,.12);color:#E32A2A"><i class="ti ti-target"></i></div>
+        <div>
+          <div class="ph-title">Metas de Vendas</div>
+          <div class="ph-sub">Configure metas globais ou individuais por vendedor</div>
+        </div>
+      </div>
+
+      <!-- Abas -->
+      <div class="meta-page-tabs">
+        <button type="button" class="meta-page-tab active" id="tabMetaGlobal" onclick="setMetaModo('global')">
+          <i class="ti ti-users"></i> Meta Global
+        </button>
+        <button type="button" class="meta-page-tab" id="tabMetaIndividual" onclick="setMetaModo('individual')">
+          <i class="ti ti-user-check"></i> Por Vendedor
+        </button>
+      </div>
+
+      <!-- GLOBAL -->
+      <div id="metaModoGlobal" class="card meta-global-card">
+        <div class="card-title"><i class="ti ti-target"></i> Meta Global Mensal</div>
+        <div class="meta-info-box">
+          <i class="ti ti-info-circle"></i>
+          Aplicada a todos os vendedores que não tiverem meta individual definida.
+        </div>
+        <label class="modal-meta-label">Número de vendas por mês</label>
+        <div class="modal-meta-input-wrap">
+          <i class="ti ti-chart-bar"></i>
+          <input type="number" id="metaMensalInput" min="1" max="9999" step="1" value="30" placeholder="Ex: 30">
+          <span class="modal-meta-unit">vendas/mês</span>
+        </div>
+        <div class="modal-meta-hint" style="margin-bottom:20px">Meta global atual: <strong id="modalMetaAtualLabel">30</strong> vendas</div>
+        <div style="display:flex;justify-content:flex-end">
+          <button class="btn btn-primary" type="button" id="btnSalvarMeta">
+            <i class="ti ti-check"></i> Salvar meta global
+          </button>
+        </div>
+      </div>
+
+      <!-- INDIVIDUAL -->
+      <div id="metaModoIndividual" class="card" style="display:none">
+        <div class="card-title"><i class="ti ti-users"></i> Meta por Vendedor</div>
+        <div class="meta-info-box">
+          <i class="ti ti-info-circle"></i>
+          Deixe em branco para usar a meta global. Campos preenchidos substituem a global para aquele vendedor.
+        </div>
+        <div id="metaVendedoresList" class="meta-vendedores-list">
+          <div class="meta-loading"><i class="ti ti-loader"></i> Carregando vendedores...</div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:16px">
+          <button class="btn btn-primary" type="button" id="btnSalvarMetaInd">
+            <i class="ti ti-check"></i> Salvar metas individuais
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="page-section" id="page-perfil">
+      <div class="page-header">
+        <div class="ph-icon"><i class="ti ti-user-circle"></i></div>
+        <div><div class="ph-title">Meu Perfil</div><div class="ph-sub">Dados do usuário logado</div></div>
+      </div>
+      <div class="card profile-card">
+        <div class="profile-row"><span>Nome</span><strong id="perfilNome">-</strong></div>
+        <div class="profile-row"><span>Email</span><strong id="perfilEmail">-</strong></div>
+        <div class="profile-row"><span>Permissão</span><strong id="perfilRole">-</strong></div>
+      </div>
+    </div>
+
+    <div class="page-section" id="page-usuarios">
+      <div class="page-header">
+        <div class="ph-icon"><i class="ti ti-shield-lock"></i></div>
+        <div><div class="ph-title">Usuários</div><div class="ph-sub">Gerenciamento disponível somente para ADMIN</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-users"></i> Usuários do Sistema</div>
+        <table class="recent-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Email</th>
+              <th>Permissão</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyUsuarios">
+            <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--txt-muted)">Nenhum usuário carregado.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="page-section" id="page-sair">
+      <div class="page-header">
+        <div class="ph-icon" style="background:#fee2e2;color:#ef4444"><i class="ti ti-logout"></i></div>
+        <div><div class="ph-title">Sair</div><div class="ph-sub">Encerrar sessão</div></div>
+      </div>
+      <div class="card" style="text-align:center;padding:40px">
+        <p style="color:var(--txt-secondary);margin-bottom:20px">Deseja realmente sair do sistema?</p>
+        <button class="btn btn-danger-outline" type="button" id="btnLogout">
+          <i class="ti ti-logout"></i> Confirmar saída
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /page -->
+</div><!-- /main -->
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <i class="ti ti-check" id="toastIcon"></i>
+  <span id="toastMsg"></span>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
+
+</body>
+</html>
