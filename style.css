@@ -803,7 +803,7 @@ body.role-admin .btn-meta-edit.admin-only {
   border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: 0 18px 45px rgba(0,0,0,.18);
-  z-index: 200;
+  z-index: 1100;
   overflow: hidden;
 }
 
@@ -869,6 +869,7 @@ body.role-admin .btn-meta-edit.admin-only {
 .topbar-user {
   display: flex; align-items: center; gap: 8px;
   cursor: pointer;
+  position: relative;
 }
 
 .topbar-user .avatar {
@@ -892,7 +893,7 @@ body.role-admin .btn-meta-edit.admin-only {
   border-radius: 10px;
   box-shadow: 0 8px 24px rgba(0,0,0,.18);
   min-width: 140px;
-  z-index: 999;
+  z-index: 1100;
   opacity: 0;
   pointer-events: none;
   transform: translateY(-6px);
@@ -2076,6 +2077,7 @@ body.role-admin .btn-meta-edit.admin-only {
     right: 12px;
     width: auto;
     max-width: none;
+    z-index: 1100;
   }
   .page { padding: 12px 12px 96px; }
   .card { padding: 16px; }
@@ -2397,60 +2399,41 @@ body.role-admin .btn-meta-edit.admin-only {
   color: var(--txt-muted);
   white-space: nowrap;
 }
-/* --- Novo Layout Mobile de Clientes --- */
-@media (max-width: 600px) {
-  /* Oculta a tabela original */
-  .recent-table { display: none; }
 
-  /* Container para os novos cards */
-  #tbodyClientes {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  /* Estilo de cada card */
-  .cliente-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .card-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .card-avatar {
-    width: 40px; height: 40px;
-    border-radius: 10px;
-    background: var(--azul);
-    color: white;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 700;
-  }
-
-  .card-info { flex: 1; min-width: 0; }
-  .card-nome { font-weight: 600; color: var(--txt-primary); font-size: 14px; }
-  .card-sub { font-size: 12px; color: var(--txt-muted); }
-
-  .card-body {
-    border-top: 1px solid var(--border);
-    padding-top: 10px;
-    font-size: 13px;
-    color: var(--txt-secondary);
-  }
-
-  .card-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
-    margin-top: 4px;
-  }
+/* ── META PAGE TABS ── */
+.meta-page-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
+.meta-page-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 20px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: none;
+  color: var(--txt-secondary);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.meta-page-tab.active {
+  background: rgba(227,42,42,.08);
+  border-color: #E32A2A;
+  color: #E32A2A;
+}
+
+.meta-page-tab:hover:not(.active) {
+  border-color: var(--txt-muted);
+  color: var(--txt-primary);
+}
+
+.meta-global-card .modal-meta-input-wrap {
+  max-width: 340px;
+}
